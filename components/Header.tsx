@@ -27,109 +27,119 @@ export const Header: React.FC = () => {
 
   return (
     <motion.header
-      className={`fixed top-0 w-full z-50 transition-all duration-300 py-4 ${
-        scrolled ? 'bg-white/95 backdrop-blur-md shadow-sm' : 'bg-transparent'
-      }`}
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      transition={{ duration: 0.6, ease: 'easeOut' }}
-    >
-      <nav className="container mx-auto px-6 flex items-center justify-between">
-        {/* Logo */}
-        <motion.a
-          href="#home"
-          className="flex items-center gap-2 font-bold text-2xl text-amber-700 hover:scale-110 transition-transform duration-200"
-        >
-          <Hotel className="w-7 h-7" />
-          <span>{logoText}</span>
-        </motion.a>
+  className={`fixed top-0 w-full z-50 transition-all duration-300 py-4 ${
+    scrolled ? 'bg-white/95 backdrop-blur-md shadow-sm' : 'bg-transparent'
+  }`}
+  initial={{ y: -100 }}
+  animate={{ y: 0 }}
+  transition={{ duration: 0.6, ease: 'easeOut' }}
+>
+  <nav className="container mx-auto px-6 flex items-center justify-between">
+  {/* Logo */}
+  <motion.a
+    href="#home"
+    className="flex items-center gap-2 font-bold text-2xl text-amber-700 hover:scale-110 transition-transform duration-200"
+  >
+    <Hotel className="w-7 h-7 text-amber-700" />
+    <span>{logoText}</span>
+  </motion.a>
 
-        {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center space-x-8">
+  {/* Desktop Navigation */}
+  <div className="hidden md:flex items-center space-x-8">
+    {navigation.map((item) => (
+      <a
+        key={item.name}
+        href={item.href}
+        className={`transform hover:scale-110 hover:-translate-y-0.5 active:scale-95 transition-all duration-200 cursor-pointer ${
+          scrolled
+            ? 'text-zinc-700 hover:text-amber-700'
+            : 'text-white hover:text-amber-300'
+        }`}
+      >
+        {item.name}
+      </a>
+    ))}
+  </div>
+
+  {/* CTA Button */}
+  <a
+    href={ctaHref}
+    className={`hidden md:inline-flex items-center px-6 py-2 rounded-lg transform hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer shadow-md ${
+      scrolled
+        ? 'bg-amber-600 text-white hover:bg-amber-700'
+        : 'bg-amber-600 text-white hover:bg-amber-700'
+    }`}
+  >
+    {ctaText}
+  </a>
+
+  {/* Mobile Menu Button */}
+  <motion.button
+    className="md:hidden p-2 rounded-lg hover:bg-zinc-100 active:scale-95 transition-all duration-200 cursor-pointer text-amber-700"
+    onClick={() => setIsMenuOpen(!isMenuOpen)}
+    aria-label="Toggle menu"
+  >
+    <AnimatePresence mode="wait">
+      {isMenuOpen ? (
+        <motion.div
+          key="close"
+          initial={{ rotate: -90, opacity: 0 }}
+          animate={{ rotate: 0, opacity: 1 }}
+          exit={{ rotate: 90, opacity: 0 }}
+          transition={{ duration: 0.2 }}
+        >
+          <X className="w-6 h-6 text-amber-700" />
+        </motion.div>
+      ) : (
+        <motion.div
+          key="menu"
+          initial={{ rotate: 90, opacity: 0 }}
+          animate={{ rotate: 0, opacity: 1 }}
+          exit={{ rotate: -90, opacity: 0 }}
+          transition={{ duration: 0.2 }}
+        >
+          <Menu className="w-6 h-6 text-amber-700" />
+        </motion.div>
+      )}
+    </AnimatePresence>
+  </motion.button>
+</nav>
+
+
+  {/* Mobile Menu */}
+  <AnimatePresence>
+    {isMenuOpen && (
+      <motion.div
+        className="md:hidden absolute top-full left-0 right-0 bg-white shadow-lg"
+        initial={{ opacity: 0, height: 0 }}
+        animate={{ opacity: 1, height: 'auto' }}
+        exit={{ opacity: 0, height: 0 }}
+        transition={{ duration: 0.3, ease: 'easeInOut' }}
+      >
+        <div className="px-6 py-4 space-y-4">
           {navigation.map((item) => (
             <a
               key={item.name}
               href={item.href}
-              className="text-zinc-700 hover:text-amber-700 transform hover:scale-110 hover:-translate-y-0.5 active:scale-95 transition-all duration-200 cursor-pointer"
+              className="block py-2 text-zinc-700 hover:text-amber-700 transform hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer"
+              onClick={() => setIsMenuOpen(false)}
             >
               {item.name}
             </a>
           ))}
-        </div>
 
-        {/* CTA Button */}
-        <a
-          href={ctaHref}
-          className="hidden md:inline-flex items-center px-6 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transform hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer shadow-md"
-        >
-          {ctaText}
-        </a>
-
-        {/* Mobile Menu Button */}
-        <motion.button
-          className="md:hidden p-2 rounded-lg hover:bg-zinc-100 active:scale-95 transition-all duration-200 cursor-pointer"
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
-          aria-label="Toggle menu"
-        >
-          <AnimatePresence mode="wait">
-            {isMenuOpen ? (
-              <motion.div
-                key="close"
-                initial={{ rotate: -90, opacity: 0 }}
-                animate={{ rotate: 0, opacity: 1 }}
-                exit={{ rotate: 90, opacity: 0 }}
-                transition={{ duration: 0.2 }}
-              >
-                <X className="w-6 h-6 text-zinc-900" />
-              </motion.div>
-            ) : (
-              <motion.div
-                key="menu"
-                initial={{ rotate: 90, opacity: 0 }}
-                animate={{ rotate: 0, opacity: 1 }}
-                exit={{ rotate: -90, opacity: 0 }}
-                transition={{ duration: 0.2 }}
-              >
-                <Menu className="w-6 h-6 text-zinc-900" />
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </motion.button>
-      </nav>
-
-      {/* Mobile Menu */}
-      <AnimatePresence>
-        {isMenuOpen && (
-          <motion.div
-            className="md:hidden absolute top-full left-0 right-0 bg-white shadow-lg"
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3, ease: 'easeInOut' }}
+          <a
+            href={ctaHref}
+            className="block w-full text-center px-6 py-2 bg-amber-600 text-white rounded-lg mt-4 transform hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer"
+            onClick={() => setIsMenuOpen(false)}
           >
-            <div className="px-6 py-4 space-y-4">
-              {navigation.map((item) => (
-                <a
-                  key={item.name}
-                  href={item.href}
-                  className="block py-2 text-zinc-700 hover:text-amber-700 transform hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  {item.name}
-                </a>
-              ))}
-              
-              <a
-                href={ctaHref}
-                className="block w-full text-center px-6 py-2 bg-amber-600 text-white rounded-lg mt-4 transform hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                {ctaText}
-              </a>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.header>
+            {ctaText}
+          </a>
+        </div>
+      </motion.div>
+    )}
+  </AnimatePresence>
+</motion.header>
+
   );
 };
