@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FloatingActionButton, ScrollProgress } from '../components/ScrollComponents';
 import { Header } from '../components/Header';
 import { HeroSection } from '../components/HeroSection';
@@ -16,6 +16,16 @@ import { BookingModal } from '../components/BookingModal';
 function App() {
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Always scroll to top on mount/refresh
+    window.scrollTo(0, 0);
+    
+    // Disable scroll restoration
+    if ('scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'manual';
+    }
+  }, []);
 
   const handleBookRoom = (roomId: string) => {
     setSelectedRoomId(roomId);

@@ -10,7 +10,7 @@ export const HeroSection: React.FC = () => {
     <section
       ref={containerRef}
       id="home"
-      className="relative min-h-screen flex items-center justify-center px-6 py-20 overflow-hidden"
+      className="relative min-h-screen flex items-center justify-center px-4 sm:px-6 pt-20 pb-20 overflow-hidden"
       style={{
         backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)), url('https://images.unsplash.com/photo-1569664370706-e26397378b09?auto=format&fit=crop&w=2000&q=80')`,
         backgroundSize: 'cover',
