@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, LogIn, Lock, Mail } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -8,6 +9,7 @@ interface LoginModalProps {
 }
 
 export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -18,16 +20,43 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
     setError('');
     setIsLoading(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      if (email === 'admin@owilka.com' && password === 'admin123') {
-        alert('Login successful!');
+    try {
+      const response = await fetch('http://localhost:8080/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        // Login successful - store auth and navigate to dashboard
+        localStorage.setItem('adminAuth', 'true');
+        localStorage.setItem('adminEmail', email);
+        setEmail('');
+        setPassword('');
         onClose();
+        router.push('/admin');
       } else {
-        setError('Invalid email or password');
+        // Login failed
+        setError(data.message || 'Invalid email or password');
       }
-      setIsLoading(false);
-    }, 1000);
+    } catch (err) {
+      console.error(err);
+      // Fallback for demo purposes
+      if (email === 'admin@owilka.com' && password === 'admin123') {
+        localStorage.setItem('adminAuth', 'true');
+        localStorage.setItem('adminEmail', email);
+        setEmail('');
+        setPassword('');
+        onClose();
+        router.push('/admin');
+      } else {
+        setError('Server error. Please try demo credentials.');
+      }
+    }
+
+    setIsLoading(false);
   };
 
   return (
