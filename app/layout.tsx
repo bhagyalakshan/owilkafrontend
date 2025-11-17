@@ -1,8 +1,11 @@
 import "../styles/globals.css";
 
 export const metadata = {
-  title: "Migrated Project",
+  title: "Owilka",
   description: "Next.js template",
+  icons: {
+    icon: '/assets/fav.png',
+  },
 };
 
 export default function RootLayout({

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence, useScroll } from 'framer-motion';
-import { Menu, X, Hotel } from 'lucide-react';
+import { Menu, X, Hotel, LogIn } from 'lucide-react';
+import { LoginModal } from './LoginModal';
 
 export const Header: React.FC = () => {
   const logoText = 'Owilka';
@@ -15,6 +16,7 @@ export const Header: React.FC = () => {
   const ctaHref = '#rooms';
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const { scrollY } = useScroll();
 
@@ -61,17 +63,31 @@ export const Header: React.FC = () => {
     ))}
   </div>
 
-  {/* CTA Button */}
-  <a
-    href={ctaHref}
-    className={`hidden md:inline-flex items-center px-6 py-2 rounded-lg transform hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer shadow-md ${
-      scrolled
-        ? 'bg-amber-600 text-white hover:bg-amber-700'
-        : 'bg-amber-600 text-white hover:bg-amber-700'
-    }`}
-  >
-    {ctaText}
-  </a>
+  {/* CTA Button & Login Icon */}
+  <div className="hidden md:flex items-center gap-4">
+    <button
+      onClick={() => setIsLoginOpen(true)}
+      className={`p-2 rounded-lg transform hover:scale-110 active:scale-95 transition-all duration-200 cursor-pointer ${
+        scrolled
+          ? 'text-amber-700 hover:bg-amber-50'
+          : 'text-white hover:bg-white/10'
+      }`}
+      aria-label="Admin Login"
+    >
+      <LogIn className="w-5 h-5" />
+    </button>
+    
+    <a
+      href={ctaHref}
+      className={`inline-flex items-center px-6 py-2 rounded-lg transform hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer shadow-md ${
+        scrolled
+          ? 'bg-amber-600 text-white hover:bg-amber-700'
+          : 'bg-amber-600 text-white hover:bg-amber-700'
+      }`}
+    >
+      {ctaText}
+    </a>
+  </div>
 
   {/* Mobile Menu Button */}
   <motion.button
@@ -128,6 +144,17 @@ export const Header: React.FC = () => {
             </a>
           ))}
 
+          <button
+            onClick={() => {
+              setIsLoginOpen(true);
+              setIsMenuOpen(false);
+            }}
+            className="flex items-center gap-2 w-full py-2 text-zinc-700 hover:text-amber-700 transform hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer"
+          >
+            <LogIn className="w-5 h-5" />
+            <span>Admin Login</span>
+          </button>
+
           <a
             href={ctaHref}
             className="block w-full text-center px-6 py-2 bg-amber-600 text-white rounded-lg mt-4 transform hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer"
@@ -139,6 +166,9 @@ export const Header: React.FC = () => {
       </motion.div>
     )}
   </AnimatePresence>
+
+  {/* Login Modal */}
+  <LoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
 </motion.header>
 
   );
