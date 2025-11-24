@@ -553,31 +553,31 @@ export default function AdminDashboard() {
 
       case 'rooms':
         return (
-          <div className="space-y-6">
-            <div className="mb-6">
-              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Rooms Management</h2>
-              <p className="text-gray-600 mt-2 text-sm sm:text-base">Manage room inventory and availability</p>
+          <div className="space-y-4 sm:space-y-6">
+            <div className="mb-4 sm:mb-6 px-2 sm:px-0">
+              <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">Rooms Management</h2>
+              <p className="text-gray-600 mt-1 sm:mt-2 text-xs sm:text-sm lg:text-base">Manage room inventory and availability</p>
             </div>
 
             {loadingRooms ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="flex flex-col items-center space-y-4">
+              <div className="flex items-center justify-center py-8 sm:py-12">
+                <div className="flex flex-col items-center space-y-3 sm:space-y-4">
                   <img 
                     src="/assets/pulse-multiple.svg" 
                     alt="Loading" 
-                    className="w-12 h-12 animate-pulse"
+                    className="w-10 h-10 sm:w-12 sm:h-12 animate-pulse"
                   />
-                  <p className="text-amber-600 font-medium">Loading rooms...</p>
+                  <p className="text-amber-600 font-medium text-sm sm:text-base">Loading rooms...</p>
                 </div>
               </div>
             ) : rooms.length === 0 ? (
-              <div className="bg-white rounded-xl p-12 text-center shadow-sm border border-gray-200">
-                <Hotel className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">No Room Types Yet</h3>
-                <p className="text-gray-600 mb-6">Start by adding your first room type using the form below</p>
+              <div className="bg-white rounded-xl p-6 sm:p-8 lg:p-12 text-center shadow-sm border border-gray-200 mx-2 sm:mx-0">
+                <Hotel className="w-12 h-12 sm:w-16 sm:h-16 text-gray-400 mx-auto mb-3 sm:mb-4" />
+                <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">No Room Types Yet</h3>
+                <p className="text-gray-600 mb-4 sm:mb-6 text-sm sm:text-base">Start by adding your first room type using the form below</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 mb-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-4 sm:mb-6 px-2 sm:px-0">
                 {rooms.map((room) => (
                   <motion.div 
                     key={room.id} 
@@ -634,65 +634,65 @@ export default function AdminDashboard() {
                     )}
 
                     {/* Room Details */}
-                    <div className="p-5">
-                      <h3 className="text-xl font-bold text-gray-900 mb-3">{room.roomTypeName}</h3>
+                    <div className="p-3 sm:p-4 lg:p-5">
+                      <h3 className="text-base sm:text-lg lg:text-xl font-bold text-gray-900 mb-2 sm:mb-3 line-clamp-1">{room.roomTypeName}</h3>
                       
                       {room.description && (
-                        <p className="text-sm text-gray-600 mb-4 line-clamp-2">{room.description}</p>
+                        <p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4 line-clamp-2">{room.description}</p>
                       )}
 
                       {/* Room Stats Grid */}
-                      <div className="grid grid-cols-2 gap-3 mb-4">
-                        <div className="bg-blue-50 p-3 rounded-lg">
-                          <p className="text-xs text-blue-600 font-medium mb-1">Total Rooms</p>
-                          <p className="text-2xl font-bold text-blue-700">{room.totalRooms}</p>
+                      <div className="grid grid-cols-2 gap-2 sm:gap-3 mb-3 sm:mb-4">
+                        <div className="bg-blue-50 p-2 sm:p-3 rounded-lg">
+                          <p className="text-[10px] sm:text-xs text-blue-600 font-medium mb-0.5 sm:mb-1">Total Rooms</p>
+                          <p className="text-xl sm:text-2xl font-bold text-blue-700">{room.totalRooms}</p>
                         </div>
-                        <div className="bg-green-50 p-3 rounded-lg">
-                          <p className="text-xs text-green-600 font-medium mb-1">Available</p>
-                          <p className="text-2xl font-bold text-green-700">{room.totalRooms - (room.occupiedRooms || 0)}</p>
+                        <div className="bg-green-50 p-2 sm:p-3 rounded-lg">
+                          <p className="text-[10px] sm:text-xs text-green-600 font-medium mb-0.5 sm:mb-1">Available</p>
+                          <p className="text-xl sm:text-2xl font-bold text-green-700">{room.totalRooms - (room.occupiedRooms || 0)}</p>
                         </div>
                       </div>
 
                       {/* Room Info */}
-                      <div className="space-y-2 mb-4">
+                      <div className="space-y-1.5 sm:space-y-2 mb-3 sm:mb-4">
                         {room.roomSize && (
-                          <div className="flex items-center text-sm text-gray-600">
-                            <div className="w-2 h-2 bg-amber-500 rounded-full mr-2"></div>
-                            <span>Size: <span className="font-semibold text-gray-800">{room.roomSize}</span></span>
+                          <div className="flex items-center text-xs sm:text-sm text-gray-600">
+                            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-amber-500 rounded-full mr-1.5 sm:mr-2 flex-shrink-0"></div>
+                            <span className="truncate">Size: <span className="font-semibold text-gray-800">{room.roomSize}</span></span>
                           </div>
                         )}
                         {room.bedType && (
-                          <div className="flex items-center text-sm text-gray-600">
-                            <div className="w-2 h-2 bg-amber-500 rounded-full mr-2"></div>
-                            <span>Bed: <span className="font-semibold text-gray-800 capitalize">{room.bedType}</span></span>
+                          <div className="flex items-center text-xs sm:text-sm text-gray-600">
+                            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-amber-500 rounded-full mr-1.5 sm:mr-2 flex-shrink-0"></div>
+                            <span className="truncate">Bed: <span className="font-semibold text-gray-800 capitalize">{room.bedType}</span></span>
                           </div>
                         )}
                         {room.maxOccupancy && (
-                          <div className="flex items-center text-sm text-gray-600">
-                            <div className="w-2 h-2 bg-amber-500 rounded-full mr-2"></div>
-                            <span>Max Guests: <span className="font-semibold text-gray-800">{room.maxOccupancy}</span></span>
+                          <div className="flex items-center text-xs sm:text-sm text-gray-600">
+                            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-amber-500 rounded-full mr-1.5 sm:mr-2 flex-shrink-0"></div>
+                            <span className="truncate">Max Guests: <span className="font-semibold text-gray-800">{room.maxOccupancy}</span></span>
                           </div>
                         )}
                         {room.viewType && (
-                          <div className="flex items-center text-sm text-gray-600">
-                            <div className="w-2 h-2 bg-amber-500 rounded-full mr-2"></div>
-                            <span>View: <span className="font-semibold text-gray-800 capitalize">{room.viewType}</span></span>
+                          <div className="flex items-center text-xs sm:text-sm text-gray-600">
+                            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-amber-500 rounded-full mr-1.5 sm:mr-2 flex-shrink-0"></div>
+                            <span className="truncate">View: <span className="font-semibold text-gray-800 capitalize">{room.viewType}</span></span>
                           </div>
                         )}
                       </div>
 
                       {/* Amenities */}
                       {room.amenities && room.amenities.length > 0 && (
-                        <div className="mb-4">
-                          <p className="text-xs font-bold text-gray-700 mb-2 uppercase tracking-wide">Amenities</p>
-                          <div className="flex flex-wrap gap-1.5">
+                        <div className="mb-3 sm:mb-4">
+                          <p className="text-[10px] sm:text-xs font-bold text-gray-700 mb-1.5 sm:mb-2 uppercase tracking-wide">Amenities</p>
+                          <div className="flex flex-wrap gap-1 sm:gap-1.5">
                             {room.amenities.slice(0, 4).map((amenity: string, idx: number) => (
-                              <span key={idx} className="text-xs bg-amber-100 text-amber-800 px-2.5 py-1 rounded-full font-medium">
+                              <span key={idx} className="text-[10px] sm:text-xs bg-amber-100 text-amber-800 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full font-medium">
                                 {amenity}
                               </span>
                             ))}
                             {room.amenities.length > 4 && (
-                              <span className="text-xs bg-gray-200 text-gray-700 px-2.5 py-1 rounded-full font-medium">
+                              <span className="text-[10px] sm:text-xs bg-gray-200 text-gray-700 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full font-medium">
                                 +{room.amenities.length - 4}
                               </span>
                             )}
@@ -701,22 +701,22 @@ export default function AdminDashboard() {
                       )}
 
                       {/* Action Buttons */}
-                      <div className="flex gap-2">
+                      <div className="flex gap-1.5 sm:gap-2">
                         <button 
                           onClick={() => handleOpenEditModal(room)}
-                          className="flex-1 py-3 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-lg hover:from-amber-600 hover:to-amber-700 transition-all font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center justify-center gap-2"
+                          className="flex-1 py-2 sm:py-2.5 lg:py-3 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-lg hover:from-amber-600 hover:to-amber-700 transition-all font-semibold shadow-md hover:shadow-lg active:scale-95 flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm"
                         >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                           </svg>
-                          Edit
+                          <span className="hidden xs:inline sm:inline">Edit</span>
                         </button>
                         <button 
                           onClick={() => handleOpenDeleteModal(room)}
-                          className="px-4 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center justify-center"
+                          className="px-3 sm:px-4 py-2 sm:py-2.5 lg:py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all font-semibold shadow-md hover:shadow-lg active:scale-95 flex items-center justify-center"
                           title="Delete Room"
                         >
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                           </svg>
                         </button>
