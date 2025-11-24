@@ -1,7 +1,6 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { Users, Maximize, Check, Calendar } from 'lucide-react';
-import { rooms } from '../data/mockRooms';
 
 interface RoomsSectionProps {
   onBookRoom?: (roomId: string) => void;
@@ -10,6 +9,41 @@ interface RoomsSectionProps {
 export const RoomsSection: React.FC<RoomsSectionProps> = ({ onBookRoom }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(containerRef, { once: true, margin: '-100px' });
+  const [rooms, setRooms] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchRooms = async () => {
+      try {
+        const response = await fetch('http://localhost:8080/api/rooms');
+        if (response.ok) {
+          const data = await response.json();
+          // Filter only active rooms and map to match component structure
+          const activeRooms = data
+            .filter((room: any) => room.status === 'active')
+            .map((room: any) => ({
+              id: room.id,
+              name: room.roomTypeName,
+              category: room.bedType ? room.bedType.charAt(0).toUpperCase() + room.bedType.slice(1) : 'Standard',
+              price: room.pricePerNight,
+              description: room.description || 'Experience luxury and comfort in our well-appointed rooms.',
+              image: room.imageUrl || 'https://images.unsplash.com/photo-1566665797739-1674de7a421a?w=800',
+              maxGuests: room.maxOccupancy || 2,
+              size: room.roomSize || '350 sq ft',
+              features: room.amenities || [],
+              available: (room.totalRooms - (room.occupiedRooms || 0)) > 0
+            }));
+          setRooms(activeRooms);
+        }
+      } catch (error) {
+        console.error('Error fetching rooms:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRooms();
+  }, []);
 
   return (
     <section ref={containerRef} id="rooms" className="py-20 px-6 bg-gradient-to-b from-white to-amber-50/30">
@@ -28,6 +62,15 @@ export const RoomsSection: React.FC<RoomsSectionProps> = ({ onBookRoom }) => {
           </p>
         </motion.div>
 
+        {loading ? (
+          <div className="flex justify-center items-center py-20">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-600"></div>
+          </div>
+        ) : rooms.length === 0 ? (
+          <div className="text-center py-20">
+            <p className="text-gray-600 text-lg">No rooms available at the moment.</p>
+          </div>
+        ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {rooms.map((room, index) => (
             <motion.div
@@ -76,7 +119,7 @@ export const RoomsSection: React.FC<RoomsSectionProps> = ({ onBookRoom }) => {
 
                 {/* Features */}
                 <div className="flex flex-wrap gap-2">
-                  {room.features.slice(0, 3).map((feature) => (
+                  {room.features.slice(0, 3).map((feature: string) => (
                     <span
                       key={feature}
                       className="px-3 py-1 bg-amber-50 text-amber-700 text-xs rounded-full"
@@ -114,6 +157,7 @@ export const RoomsSection: React.FC<RoomsSectionProps> = ({ onBookRoom }) => {
             </motion.div>
           ))}
         </div>
+        )}
       </div>
     </section>
   );

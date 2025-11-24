@@ -1060,6 +1060,9 @@ video {
 .border-t {
   border-top-width: 1px;
 }
+.border-b-2 {
+  border-bottom-width: 2px;
+}
 .border-gray-200 {
   --tw-border-opacity: 1;
   border-color: rgb(229 231 235 / var(--tw-border-opacity, 1));
@@ -1102,6 +1105,10 @@ video {
 .border-zinc-800 {
   --tw-border-opacity: 1;
   border-color: rgb(39 39 42 / var(--tw-border-opacity, 1));
+}
+.border-yellow-600 {
+  --tw-border-opacity: 1;
+  border-color: rgb(202 138 4 / var(--tw-border-opacity, 1));
 }
 .border-t-transparent {
   border-top-color: transparent;
