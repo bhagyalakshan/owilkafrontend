@@ -254,7 +254,7 @@ export default function AdminDashboard() {
               <p className="text-gray-600 mt-2 text-sm sm:text-base">Manage room inventory and availability</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 mb-6">
               {[
                 { type: 'Deluxe Suite', total: 50, occupied: 38, price: '$299' },
                 { type: 'Premium Room', total: 80, occupied: 62, price: '$199' },
@@ -277,6 +277,206 @@ export default function AdminDashboard() {
                   </button>
                 </div>
               ))}
+            </div>
+
+            {/* Add New Room Type Section */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <div className="mb-6">
+                <h3 className="text-xl font-bold text-gray-900 mb-2">Add New Room Type</h3>
+                <p className="text-sm text-gray-600">Create a new room category with all essential details</p>
+              </div>
+
+              <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Room Type Name */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Room Type Name <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g., Deluxe Suite"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition-all"
+                      required
+                    />
+                  </div>
+
+                  {/* Price per Night */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Price per Night ($) <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      placeholder="299"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition-all"
+                      required
+                    />
+                  </div>
+
+                  {/* Total Rooms */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Total Rooms <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      placeholder="50"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition-all"
+                      required
+                    />
+                  </div>
+
+                  {/* Room Size */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Room Size (sq ft)
+                    </label>
+                    <input
+                      type="number"
+                      placeholder="450"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition-all"
+                    />
+                  </div>
+
+                  {/* Bed Type */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Bed Type <span className="text-red-500">*</span>
+                    </label>
+                    <select className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition-all" required>
+                      <option value="">Select bed type</option>
+                      <option value="single">Single</option>
+                      <option value="double">Double</option>
+                      <option value="queen">Queen</option>
+                      <option value="king">King</option>
+                      <option value="twin">Twin Beds</option>
+                    </select>
+                  </div>
+
+                  {/* Max Occupancy */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Max Occupancy <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      placeholder="2"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition-all"
+                      required
+                    />
+                  </div>
+
+                  {/* View Type */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      View Type
+                    </label>
+                    <select className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition-all">
+                      <option value="">Select view type</option>
+                      <option value="ocean">Ocean View</option>
+                      <option value="city">City View</option>
+                      <option value="garden">Garden View</option>
+                      <option value="pool">Pool View</option>
+                      <option value="mountain">Mountain View</option>
+                    </select>
+                  </div>
+
+                  {/* Floor Number */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Floor Number
+                    </label>
+                    <input
+                      type="number"
+                      placeholder="3"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition-all"
+                    />
+                  </div>
+                </div>
+
+                {/* Description */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Room Description <span className="text-red-500">*</span>
+                  </label>
+                  <textarea
+                    rows={4}
+                    placeholder="Describe the room features, amenities, and highlights..."
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition-all resize-none"
+                    required
+                  />
+                </div>
+
+                {/* Amenities */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    Amenities & Features
+                  </label>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                    {[
+                      'WiFi',
+                      'TV',
+                      'Air Conditioning',
+                      'Mini Bar',
+                      'Room Service',
+                      'Safe',
+                      'Balcony',
+                      'Coffee Maker',
+                      'Hair Dryer',
+                      'Iron',
+                      'Work Desk',
+                      'Bathtub',
+                    ].map((amenity) => (
+                      <label key={amenity} className="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" className="w-4 h-4 text-amber-600 rounded" />
+                        <span className="text-sm text-gray-700">{amenity}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Image URL */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Room Image URL
+                  </label>
+                  <input
+                    type="url"
+                    placeholder="https://example.com/room-image.jpg"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition-all"
+                  />
+                  <p className="mt-1 text-xs text-gray-500">Enter the URL of the room image</p>
+                </div>
+
+                {/* Status */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Status
+                  </label>
+                  <select className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition-all">
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                    <option value="maintenance">Under Maintenance</option>
+                  </select>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-4 pt-4 border-t border-gray-200">
+                  <button
+                    type="submit"
+                    className="flex-1 px-6 py-3 bg-amber-600 text-white rounded-lg font-medium hover:bg-amber-700 focus:ring-4 focus:ring-amber-200 transition-all"
+                  >
+                    Add Room Type
+                  </button>
+                  <button
+                    type="reset"
+                    className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-all"
+                  >
+                    Reset Form
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         );
