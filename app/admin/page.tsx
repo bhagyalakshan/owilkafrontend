@@ -64,6 +64,8 @@ export default function AdminDashboard() {
     imageUrl: '',
     status: 'active'
   });
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [roomToDelete, setRoomToDelete] = useState<any>(null);
 
   // Handle form input changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -244,6 +246,59 @@ export default function AdminDashboard() {
         show: true,
         type: 'error',
         message: `Error updating room: ${error instanceof Error ? error.message : 'Unknown error'}`
+      });
+      setTimeout(() => setNotification({ show: false, type: 'error', message: '' }), 4000);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Open delete confirmation modal
+  const handleOpenDeleteModal = (room: any) => {
+    setRoomToDelete(room);
+    setDeleteModalOpen(true);
+  };
+
+  // Close delete modal
+  const handleCloseDeleteModal = () => {
+    setDeleteModalOpen(false);
+    setRoomToDelete(null);
+  };
+
+  // Delete room
+  const handleDeleteRoom = async () => {
+    if (!roomToDelete) return;
+    
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch(`http://localhost:8080/api/rooms/${roomToDelete.id}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        setNotification({
+          show: true,
+          type: 'success',
+          message: 'Room deleted successfully!'
+        });
+        handleCloseDeleteModal();
+        fetchRooms(); // Refresh the list
+        setTimeout(() => setNotification({ show: false, type: 'success', message: '' }), 3000);
+      } else {
+        const errorText = await response.text();
+        setNotification({
+          show: true,
+          type: 'error',
+          message: `Failed to delete room: ${errorText}`
+        });
+        setTimeout(() => setNotification({ show: false, type: 'error', message: '' }), 4000);
+      }
+    } catch (error) {
+      setNotification({
+        show: true,
+        type: 'error',
+        message: `Error deleting room: ${error instanceof Error ? error.message : 'Unknown error'}`
       });
       setTimeout(() => setNotification({ show: false, type: 'error', message: '' }), 4000);
     } finally {
@@ -531,23 +586,34 @@ export default function AdminDashboard() {
                     className="bg-white rounded-xl shadow-md border border-gray-200 hover:shadow-xl transition-all duration-300 overflow-hidden"
                   >
                     {/* Room Image */}
-                    {room.imageUrl ? (
+                    {room.imageUrl && room.imageUrl.trim() !== '' ? (
                       <div className="relative h-48 sm:h-56 overflow-hidden bg-gray-100">
                         <img 
                           src={room.imageUrl} 
-                          alt={room.roomTypeName}
+                          alt={room.roomTypeName || 'Room'}
                           className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                          loading="lazy"
                           onError={(e) => { 
-                            e.currentTarget.src = 'https://via.placeholder.com/400x300?text=Room+Image'; 
+                            const target = e.currentTarget;
+                            // Hide the broken image and show fallback
+                            target.style.display = 'none';
+                            const fallback = target.parentElement?.querySelector('.fallback-bg');
+                            if (fallback) {
+                              (fallback as HTMLElement).style.display = 'flex';
+                            }
                           }}
                         />
+                        {/* Fallback for broken images */}
+                        <div className="fallback-bg absolute inset-0 bg-gradient-to-br from-amber-100 to-amber-200 items-center justify-center hidden">
+                          <Hotel className="w-20 h-20 text-amber-400" />
+                        </div>
                         <div className="absolute top-3 right-3">
                           <span className={`px-3 py-1.5 text-xs font-bold rounded-full shadow-lg ${
                             room.status === 'active' ? 'bg-green-500 text-white' :
                             room.status === 'inactive' ? 'bg-gray-500 text-white' :
                             'bg-yellow-500 text-white'
                           }`}>
-                            {room.status?.toUpperCase()}
+                            {room.status?.toUpperCase() || 'N/A'}
                           </span>
                         </div>
                         <div className="absolute bottom-3 right-3 bg-amber-600 text-white px-4 py-2 rounded-lg shadow-lg">
@@ -634,13 +700,27 @@ export default function AdminDashboard() {
                         </div>
                       )}
 
-                      {/* Manage Button */}
-                      <button 
-                        onClick={() => handleOpenEditModal(room)}
-                        className="w-full py-3 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-lg hover:from-amber-600 hover:to-amber-700 transition-all font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
-                      >
-                        Manage Room
-                      </button>
+                      {/* Action Buttons */}
+                      <div className="flex gap-2">
+                        <button 
+                          onClick={() => handleOpenEditModal(room)}
+                          className="flex-1 py-3 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-lg hover:from-amber-600 hover:to-amber-700 transition-all font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center justify-center gap-2"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          </svg>
+                          Edit
+                        </button>
+                        <button 
+                          onClick={() => handleOpenDeleteModal(room)}
+                          className="px-4 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center justify-center"
+                          title="Delete Room"
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      </div>
                     </div>
                   </motion.div>
                 ))}
@@ -851,10 +931,10 @@ export default function AdminDashboard() {
                     name="imageUrl"
                     value={roomForm.imageUrl}
                     onChange={handleInputChange}
-                    placeholder="https://example.com/room-image.jpg"
+                    placeholder="https://images.unsplash.com/photo-xxxxx or https://example.com/room.jpg"
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition-all"
                   />
-                  <p className="mt-1 text-xs text-gray-500">Enter the URL of the room image or Google Drive direct link</p>
+                  <p className="mt-1 text-xs text-gray-500">💡 Use direct image links (HTTPS recommended). Try Unsplash, Imgur, or image hosting services.</p>
                 </div>
 
                 {/* Status */}
@@ -1279,9 +1359,10 @@ export default function AdminDashboard() {
                       name="imageUrl"
                       value={editForm.imageUrl}
                       onChange={handleEditInputChange}
-                      placeholder="https://example.com/room-image.jpg"
+                      placeholder="https://images.unsplash.com/photo-xxxxx or https://example.com/room.jpg"
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none"
                     />
+                    <p className="mt-1 text-xs text-gray-500">💡 Use direct image links (HTTPS recommended). Try Unsplash, Imgur, or image hosting services.</p>
                   </div>
 
                   {/* Description */}
@@ -1334,6 +1415,104 @@ export default function AdminDashboard() {
                   </button>
                 </div>
               </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Delete Confirmation Modal */}
+      <AnimatePresence>
+        {deleteModalOpen && roomToDelete && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden"
+            >
+              {/* Modal Header */}
+              <div className="bg-red-500 px-6 py-4 flex items-center gap-3">
+                <div className="bg-white/20 p-2 rounded-lg">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                </div>
+                <h2 className="text-xl font-bold text-white">Delete Room Type</h2>
+              </div>
+
+              {/* Modal Body */}
+              <div className="p-6">
+                <p className="text-gray-700 mb-4">
+                  Are you sure you want to delete <span className="font-bold text-gray-900">"{roomToDelete.roomTypeName}"</span>?
+                </p>
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                  <div className="flex gap-3">
+                    <svg className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <div>
+                      <p className="font-semibold text-red-900 text-sm mb-1">Warning</p>
+                      <p className="text-red-700 text-sm">
+                        This action cannot be undone. All room data will be permanently deleted from the database.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Room Info */}
+                <div className="bg-gray-50 rounded-lg p-4 mb-6">
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                      <span className="text-gray-600">Price:</span>
+                      <span className="ml-2 font-semibold text-gray-900">${roomToDelete.pricePerNight}/night</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">Total Rooms:</span>
+                      <span className="ml-2 font-semibold text-gray-900">{roomToDelete.totalRooms}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={handleCloseDeleteModal}
+                    disabled={isSubmitting}
+                    className="flex-1 px-4 py-3 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleDeleteRoom}
+                    disabled={isSubmitting}
+                    className="flex-1 px-4 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all font-semibold shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Deleting...
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                        Delete Room
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
             </motion.div>
           </motion.div>
         )}
