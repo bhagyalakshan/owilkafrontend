@@ -467,7 +467,7 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        <nav className="p-4 space-y-2 overflow-y-auto h-[calc(100vh-200px)]">
+        <nav className="p-4 space-y-2 overflow-y-auto" style={{ height: 'calc(100vh - 200px)' }}>
           {[
             { id: 'dashboard', label: 'Dashboard', icon: Home },
             { id: 'bookings', label: 'Bookings', icon: Calendar },
@@ -480,30 +480,32 @@ export default function AdminDashboard() {
               key={item.id}
               onClick={() => {
                 setActiveTab(item.id);
-                setIsSidebarOpen(false);
+                if (!isLargeScreen) setIsSidebarOpen(false);
               }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all relative cursor-pointer ${
                 activeTab === item.id
                   ? 'bg-amber-600 text-white'
                   : 'text-gray-700 hover:bg-gray-100'
               }`}
+              style={{ pointerEvents: 'auto', zIndex: 1 }}
             >
-              <item.icon className="w-5 h-5" />
-              <span className="font-medium">{item.label}</span>
+              <item.icon className="w-5 h-5 flex-shrink-0" />
+              <span className="font-medium whitespace-nowrap">{item.label}</span>
             </button>
           ))}
         </nav>
 
-        <div className="absolute bottom-0 w-full p-4 border-t border-gray-200 bg-white">
+        <div className="absolute bottom-0 w-64 p-4 border-t border-gray-200 bg-white">
           <button
             onClick={() => {
               handleLogout();
-              setIsSidebarOpen(false);
+              if (!isLargeScreen) setIsSidebarOpen(false);
             }}
-            className="w-full flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg transition-all"
+            className="w-full flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg transition-all cursor-pointer"
+            style={{ pointerEvents: 'auto' }}
           >
-            <LogOut className="w-5 h-5" />
-            <span className="font-medium">Logout</span>
+            <LogOut className="w-5 h-5 flex-shrink-0" />
+            <span className="font-medium whitespace-nowrap">Logout</span>
           </button>
         </div>
       </motion.aside>
