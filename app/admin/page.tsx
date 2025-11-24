@@ -23,6 +23,24 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isLargeScreen, setIsLargeScreen] = useState(true);
+
+  useEffect(() => {
+    // Check screen size and update state
+    const checkScreenSize = () => {
+      setIsLargeScreen(window.innerWidth >= 1024);
+      if (window.innerWidth >= 1024) {
+        setIsSidebarOpen(false);
+      }
+    };
+
+    // Initial check
+    checkScreenSize();
+
+    // Add resize listener
+    window.addEventListener('resize', checkScreenSize);
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
 
   useEffect(() => {
     // Check if user is authenticated
@@ -69,24 +87,24 @@ export default function AdminDashboard() {
 
       {/* Mobile Overlay */}
       <AnimatePresence>
-        {isSidebarOpen && (
+        {!isLargeScreen && isSidebarOpen && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setIsSidebarOpen(false)}
-            className="lg:hidden fixed inset-0 bg-black/50 z-30"
+            className="fixed inset-0 bg-black/50 z-30"
           />
         )}
       </AnimatePresence>
 
       {/* Sidebar */}
       <motion.aside
-        initial={{ x: -300 }}
-        animate={{ x: isSidebarOpen || window.innerWidth >= 1024 ? 0 : -300 }}
-        className={`w-64 bg-white shadow-lg fixed h-full z-40 lg:z-10 ${
-          isSidebarOpen ? 'block' : 'hidden lg:block'
-        }`}
+        initial={false}
+        animate={{ x: (isLargeScreen || isSidebarOpen) ? 0 : -300 }}
+        transition={{ type: 'tween', duration: 0.3 }}
+        className="w-64 bg-white shadow-lg fixed h-full z-40 lg:relative lg:z-10"
+        style={{ display: !isLargeScreen && !isSidebarOpen ? 'none' : 'block' }}
       >
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center gap-3">
@@ -137,7 +155,7 @@ export default function AdminDashboard() {
       </motion.aside>
 
       {/* Main Content */}
-      <main className="flex-1 lg:ml-64 p-4 sm:p-6 lg:p-8 pt-16 lg:pt-8">
+      <main className="flex-1 w-full min-w-0 p-4 sm:p-6 lg:p-8 pt-16 lg:pt-8" style={{ marginLeft: isLargeScreen ? '256px' : '0' }}>
         {/* Header */}
         <div className="mb-6 lg:mb-8">
           <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Dashboard Overview</h2>
