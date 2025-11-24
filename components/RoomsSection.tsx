@@ -55,7 +55,7 @@ export const RoomsSection: React.FC<RoomsSectionProps> = ({ onBookRoom }) => {
           transition={{ duration: 0.6 }}
         >
           <h2 className="text-4xl md:text-5xl font-bold text-zinc-900 mb-4">
-            Our Premium Rooms
+            Our Premium Guest Houses
           </h2>
           <p className="text-lg text-zinc-600 max-w-2xl mx-auto">
             Choose from our carefully designed rooms, each offering comfort, elegance, and modern amenities for the perfect stay.
