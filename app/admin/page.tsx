@@ -48,11 +48,43 @@ export default function AdminDashboard() {
   }>({ show: false, type: 'success', message: '' });
   const [rooms, setRooms] = useState<any[]>([]);
   const [loadingRooms, setLoadingRooms] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editingRoom, setEditingRoom] = useState<any>(null);
+  const [editForm, setEditForm] = useState({
+    roomTypeName: '',
+    pricePerNight: '',
+    totalRooms: '',
+    roomSize: '',
+    bedType: '',
+    maxOccupancy: '',
+    viewType: '',
+    floorNumber: '',
+    description: '',
+    amenities: [] as string[],
+    imageUrl: '',
+    status: 'active'
+  });
 
   // Handle form input changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setRoomForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  // Handle edit form input changes
+  const handleEditInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setEditForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  // Handle edit amenity checkbox changes
+  const handleEditAmenityChange = (amenity: string) => {
+    setEditForm(prev => ({
+      ...prev,
+      amenities: prev.amenities.includes(amenity)
+        ? prev.amenities.filter(a => a !== amenity)
+        : [...prev.amenities, amenity]
+    }));
   };
 
   // Handle amenity checkbox changes
@@ -140,6 +172,83 @@ export default function AdminDashboard() {
       imageUrl: '',
       status: 'active'
     });
+  };
+
+  // Open edit modal
+  const handleOpenEditModal = (room: any) => {
+    setEditingRoom(room);
+    setEditForm({
+      roomTypeName: room.roomTypeName || '',
+      pricePerNight: room.pricePerNight?.toString() || '',
+      totalRooms: room.totalRooms?.toString() || '',
+      roomSize: room.roomSize || '',
+      bedType: room.bedType || '',
+      maxOccupancy: room.maxOccupancy?.toString() || '',
+      viewType: room.viewType || '',
+      floorNumber: room.floorNumber?.toString() || '',
+      description: room.description || '',
+      amenities: room.amenities || [],
+      imageUrl: room.imageUrl || '',
+      status: room.status || 'active'
+    });
+    setEditModalOpen(true);
+  };
+
+  // Close edit modal
+  const handleCloseEditModal = () => {
+    setEditModalOpen(false);
+    setEditingRoom(null);
+  };
+
+  // Update room
+  const handleUpdateRoom = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch(`http://localhost:8080/api/rooms/${editingRoom.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...editForm,
+          pricePerNight: parseFloat(editForm.pricePerNight),
+          totalRooms: parseInt(editForm.totalRooms),
+          roomSize: editForm.roomSize,
+          maxOccupancy: editForm.maxOccupancy ? parseInt(editForm.maxOccupancy) : null,
+          floorNumber: editForm.floorNumber ? parseInt(editForm.floorNumber) : null,
+        }),
+      });
+
+      if (response.ok) {
+        setNotification({
+          show: true,
+          type: 'success',
+          message: 'Room updated successfully!'
+        });
+        handleCloseEditModal();
+        fetchRooms(); // Refresh the list
+        setTimeout(() => setNotification({ show: false, type: 'success', message: '' }), 3000);
+      } else {
+        const errorText = await response.text();
+        setNotification({
+          show: true,
+          type: 'error',
+          message: `Failed to update room: ${errorText}`
+        });
+        setTimeout(() => setNotification({ show: false, type: 'error', message: '' }), 4000);
+      }
+    } catch (error) {
+      setNotification({
+        show: true,
+        type: 'error',
+        message: `Error updating room: ${error instanceof Error ? error.message : 'Unknown error'}`
+      });
+      setTimeout(() => setNotification({ show: false, type: 'error', message: '' }), 4000);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Fetch rooms from backend
@@ -415,65 +524,125 @@ export default function AdminDashboard() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 mb-6">
                 {rooms.map((room) => (
-                  <div key={room.id} className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
-                    <div className="flex items-center justify-between mb-4">
-                      <Hotel className="w-8 h-8 text-amber-600" />
-                      <span className="text-lg font-bold text-amber-600">${room.pricePerNight}</span>
-                    </div>
-                    
-                    {room.imageUrl && (
-                      <div className="mb-4 rounded-lg overflow-hidden">
+                  <motion.div 
+                    key={room.id} 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-white rounded-xl shadow-md border border-gray-200 hover:shadow-xl transition-all duration-300 overflow-hidden"
+                  >
+                    {/* Room Image */}
+                    {room.imageUrl ? (
+                      <div className="relative h-48 sm:h-56 overflow-hidden bg-gray-100">
                         <img 
                           src={room.imageUrl} 
                           alt={room.roomTypeName}
-                          className="w-full h-32 object-cover"
-                          onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                          className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                          onError={(e) => { 
+                            e.currentTarget.src = 'https://via.placeholder.com/400x300?text=Room+Image'; 
+                          }}
                         />
+                        <div className="absolute top-3 right-3">
+                          <span className={`px-3 py-1.5 text-xs font-bold rounded-full shadow-lg ${
+                            room.status === 'active' ? 'bg-green-500 text-white' :
+                            room.status === 'inactive' ? 'bg-gray-500 text-white' :
+                            'bg-yellow-500 text-white'
+                          }`}>
+                            {room.status?.toUpperCase()}
+                          </span>
+                        </div>
+                        <div className="absolute bottom-3 right-3 bg-amber-600 text-white px-4 py-2 rounded-lg shadow-lg">
+                          <span className="text-sm font-medium">$</span>
+                          <span className="text-xl font-bold">{room.pricePerNight}</span>
+                          <span className="text-sm">/night</span>
+                        </div>
                       </div>
-                    )}
-                    
-                    <h3 className="text-lg font-bold text-gray-900 mb-2">{room.roomTypeName}</h3>
-                    
-                    <div className="space-y-2 text-sm text-gray-600 mb-3">
-                      <p>Total Rooms: <span className="font-semibold">{room.totalRooms}</span></p>
-                      <p>Occupied: <span className="font-semibold text-green-600">{room.occupiedRooms || 0}</span></p>
-                      <p>Available: <span className="font-semibold text-blue-600">{room.totalRooms - (room.occupiedRooms || 0)}</span></p>
-                      {room.bedType && <p>Bed Type: <span className="font-semibold capitalize">{room.bedType}</span></p>}
-                      {room.maxOccupancy && <p>Max Guests: <span className="font-semibold">{room.maxOccupancy}</span></p>}
-                    </div>
-                    
-                    {room.amenities && room.amenities.length > 0 && (
-                      <div className="mb-4">
-                        <p className="text-xs font-semibold text-gray-700 mb-2">Amenities:</p>
-                        <div className="flex flex-wrap gap-1">
-                          {room.amenities.slice(0, 3).map((amenity: string, idx: number) => (
-                            <span key={idx} className="text-xs bg-amber-50 text-amber-700 px-2 py-1 rounded">
-                              {amenity}
-                            </span>
-                          ))}
-                          {room.amenities.length > 3 && (
-                            <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
-                              +{room.amenities.length - 3} more
-                            </span>
-                          )}
+                    ) : (
+                      <div className="relative h-48 sm:h-56 bg-gradient-to-br from-amber-100 to-amber-200 flex items-center justify-center">
+                        <Hotel className="w-20 h-20 text-amber-400" />
+                        <div className="absolute bottom-3 right-3 bg-amber-600 text-white px-4 py-2 rounded-lg shadow-lg">
+                          <span className="text-sm font-medium">$</span>
+                          <span className="text-xl font-bold">{room.pricePerNight}</span>
+                          <span className="text-sm">/night</span>
                         </div>
                       </div>
                     )}
-                    
-                    <div className="flex items-center gap-2 mb-4">
-                      <span className={`px-3 py-1 text-xs font-semibold rounded-full ${
-                        room.status === 'active' ? 'bg-green-100 text-green-700' :
-                        room.status === 'inactive' ? 'bg-gray-100 text-gray-700' :
-                        'bg-yellow-100 text-yellow-700'
-                      }`}>
-                        {room.status}
-                      </span>
+
+                    {/* Room Details */}
+                    <div className="p-5">
+                      <h3 className="text-xl font-bold text-gray-900 mb-3">{room.roomTypeName}</h3>
+                      
+                      {room.description && (
+                        <p className="text-sm text-gray-600 mb-4 line-clamp-2">{room.description}</p>
+                      )}
+
+                      {/* Room Stats Grid */}
+                      <div className="grid grid-cols-2 gap-3 mb-4">
+                        <div className="bg-blue-50 p-3 rounded-lg">
+                          <p className="text-xs text-blue-600 font-medium mb-1">Total Rooms</p>
+                          <p className="text-2xl font-bold text-blue-700">{room.totalRooms}</p>
+                        </div>
+                        <div className="bg-green-50 p-3 rounded-lg">
+                          <p className="text-xs text-green-600 font-medium mb-1">Available</p>
+                          <p className="text-2xl font-bold text-green-700">{room.totalRooms - (room.occupiedRooms || 0)}</p>
+                        </div>
+                      </div>
+
+                      {/* Room Info */}
+                      <div className="space-y-2 mb-4">
+                        {room.roomSize && (
+                          <div className="flex items-center text-sm text-gray-600">
+                            <div className="w-2 h-2 bg-amber-500 rounded-full mr-2"></div>
+                            <span>Size: <span className="font-semibold text-gray-800">{room.roomSize}</span></span>
+                          </div>
+                        )}
+                        {room.bedType && (
+                          <div className="flex items-center text-sm text-gray-600">
+                            <div className="w-2 h-2 bg-amber-500 rounded-full mr-2"></div>
+                            <span>Bed: <span className="font-semibold text-gray-800 capitalize">{room.bedType}</span></span>
+                          </div>
+                        )}
+                        {room.maxOccupancy && (
+                          <div className="flex items-center text-sm text-gray-600">
+                            <div className="w-2 h-2 bg-amber-500 rounded-full mr-2"></div>
+                            <span>Max Guests: <span className="font-semibold text-gray-800">{room.maxOccupancy}</span></span>
+                          </div>
+                        )}
+                        {room.viewType && (
+                          <div className="flex items-center text-sm text-gray-600">
+                            <div className="w-2 h-2 bg-amber-500 rounded-full mr-2"></div>
+                            <span>View: <span className="font-semibold text-gray-800 capitalize">{room.viewType}</span></span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Amenities */}
+                      {room.amenities && room.amenities.length > 0 && (
+                        <div className="mb-4">
+                          <p className="text-xs font-bold text-gray-700 mb-2 uppercase tracking-wide">Amenities</p>
+                          <div className="flex flex-wrap gap-1.5">
+                            {room.amenities.slice(0, 4).map((amenity: string, idx: number) => (
+                              <span key={idx} className="text-xs bg-amber-100 text-amber-800 px-2.5 py-1 rounded-full font-medium">
+                                {amenity}
+                              </span>
+                            ))}
+                            {room.amenities.length > 4 && (
+                              <span className="text-xs bg-gray-200 text-gray-700 px-2.5 py-1 rounded-full font-medium">
+                                +{room.amenities.length - 4}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Manage Button */}
+                      <button 
+                        onClick={() => handleOpenEditModal(room)}
+                        className="w-full py-3 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-lg hover:from-amber-600 hover:to-amber-700 transition-all font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                      >
+                        Manage Room
+                      </button>
                     </div>
-                    
-                    <button className="mt-4 w-full py-2 border border-amber-600 text-amber-600 rounded-lg hover:bg-amber-50 transition-all font-medium">
-                      Manage
-                    </button>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
             )}
@@ -944,6 +1113,231 @@ export default function AdminDashboard() {
           </div>
         </div>
       )}
+
+      {/* Edit Room Modal */}
+      <AnimatePresence>
+        {editModalOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden"
+            >
+              {/* Modal Header */}
+              <div className="bg-gradient-to-r from-amber-500 to-amber-600 px-6 py-4 flex items-center justify-between">
+                <h2 className="text-2xl font-bold text-white">Edit Room Details</h2>
+                <button
+                  onClick={handleCloseEditModal}
+                  className="text-white hover:bg-white/20 p-2 rounded-lg transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              {/* Modal Body */}
+              <form onSubmit={handleUpdateRoom} className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Room Type Name */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Room Type Name <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="roomTypeName"
+                      value={editForm.roomTypeName}
+                      onChange={handleEditInputChange}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none"
+                      required
+                    />
+                  </div>
+
+                  {/* Price */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Price per Night ($) <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      name="pricePerNight"
+                      value={editForm.pricePerNight}
+                      onChange={handleEditInputChange}
+                      step="0.01"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none"
+                      required
+                    />
+                  </div>
+
+                  {/* Total Rooms */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Total Rooms <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      name="totalRooms"
+                      value={editForm.totalRooms}
+                      onChange={handleEditInputChange}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none"
+                      required
+                    />
+                  </div>
+
+                  {/* Room Size */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Room Size</label>
+                    <input
+                      type="text"
+                      name="roomSize"
+                      value={editForm.roomSize}
+                      onChange={handleEditInputChange}
+                      placeholder="e.g., 350 sq ft"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none"
+                    />
+                  </div>
+
+                  {/* Bed Type */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Bed Type</label>
+                    <select
+                      name="bedType"
+                      value={editForm.bedType}
+                      onChange={handleEditInputChange}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none"
+                    >
+                      <option value="">Select bed type</option>
+                      <option value="single">Single</option>
+                      <option value="double">Double</option>
+                      <option value="queen">Queen</option>
+                      <option value="king">King</option>
+                    </select>
+                  </div>
+
+                  {/* Max Occupancy */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Max Occupancy</label>
+                    <input
+                      type="number"
+                      name="maxOccupancy"
+                      value={editForm.maxOccupancy}
+                      onChange={handleEditInputChange}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none"
+                    />
+                  </div>
+
+                  {/* View Type */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">View Type</label>
+                    <input
+                      type="text"
+                      name="viewType"
+                      value={editForm.viewType}
+                      onChange={handleEditInputChange}
+                      placeholder="e.g., Ocean, Garden"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none"
+                    />
+                  </div>
+
+                  {/* Floor Number */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Floor Number</label>
+                    <input
+                      type="number"
+                      name="floorNumber"
+                      value={editForm.floorNumber}
+                      onChange={handleEditInputChange}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none"
+                    />
+                  </div>
+
+                  {/* Status */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Status</label>
+                    <select
+                      name="status"
+                      value={editForm.status}
+                      onChange={handleEditInputChange}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none"
+                    >
+                      <option value="active">Active</option>
+                      <option value="inactive">Inactive</option>
+                      <option value="maintenance">Maintenance</option>
+                    </select>
+                  </div>
+
+                  {/* Image URL */}
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Image URL</label>
+                    <input
+                      type="url"
+                      name="imageUrl"
+                      value={editForm.imageUrl}
+                      onChange={handleEditInputChange}
+                      placeholder="https://example.com/room-image.jpg"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none"
+                    />
+                  </div>
+
+                  {/* Description */}
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Description</label>
+                    <textarea
+                      name="description"
+                      value={editForm.description}
+                      onChange={handleEditInputChange}
+                      rows={3}
+                      placeholder="Brief description of the room..."
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none resize-none"
+                    />
+                  </div>
+
+                  {/* Amenities */}
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-semibold text-gray-700 mb-3">Amenities</label>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                      {['WiFi', 'TV', 'Air Conditioning', 'Mini Bar', 'Safe', 'Balcony', 'Ocean View', 'Room Service'].map((amenity) => (
+                        <label key={amenity} className="flex items-center space-x-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={editForm.amenities.includes(amenity)}
+                            onChange={() => handleEditAmenityChange(amenity)}
+                            className="w-4 h-4 text-amber-600 border-gray-300 rounded focus:ring-amber-500"
+                          />
+                          <span className="text-sm text-gray-700">{amenity}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Modal Footer */}
+                <div className="flex items-center justify-end gap-4 mt-8 pt-6 border-t border-gray-200">
+                  <button
+                    type="button"
+                    onClick={handleCloseEditModal}
+                    className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="px-6 py-3 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-lg hover:from-amber-600 hover:to-amber-700 transition-all font-semibold shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isSubmitting ? 'Updating...' : 'Update Room'}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Mobile Menu Button */}
       <button
