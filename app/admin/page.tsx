@@ -46,6 +46,8 @@ export default function AdminDashboard() {
     type: 'success' | 'error';
     message: string;
   }>({ show: false, type: 'success', message: '' });
+  const [rooms, setRooms] = useState<any[]>([]);
+  const [loadingRooms, setLoadingRooms] = useState(false);
 
   // Handle form input changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -98,6 +100,7 @@ export default function AdminDashboard() {
           message: 'Room type added successfully!'
         });
         handleResetForm();
+        fetchRooms(); // Refresh the rooms list
         setTimeout(() => setNotification({ show: false, type: 'success', message: '' }), 3000);
       } else {
         const error = await response.json();
@@ -139,6 +142,24 @@ export default function AdminDashboard() {
     });
   };
 
+  // Fetch rooms from backend
+  const fetchRooms = async () => {
+    setLoadingRooms(true);
+    try {
+      const response = await fetch('http://localhost:8080/api/rooms');
+      if (response.ok) {
+        const data = await response.json();
+        setRooms(data);
+      } else {
+        console.error('Failed to fetch rooms');
+      }
+    } catch (error) {
+      console.error('Error fetching rooms:', error);
+    } finally {
+      setLoadingRooms(false);
+    }
+  };
+
   useEffect(() => {
     // Check screen size and update state
     const checkScreenSize = () => {
@@ -165,6 +186,12 @@ export default function AdminDashboard() {
       setIsAuthenticated(true);
     }
   }, [router]);
+
+  useEffect(() => {
+    if (activeTab === 'rooms') {
+      fetchRooms();
+    }
+  }, [activeTab]);
 
   const handleLogout = () => {
     localStorage.removeItem('adminAuth');
@@ -368,30 +395,88 @@ export default function AdminDashboard() {
               <p className="text-gray-600 mt-2 text-sm sm:text-base">Manage room inventory and availability</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 mb-6">
-              {[
-                { type: 'Deluxe Suite', total: 50, occupied: 38, price: '$299' },
-                { type: 'Premium Room', total: 80, occupied: 62, price: '$199' },
-                { type: 'Executive Suite', total: 30, occupied: 18, price: '$399' },
-                { type: 'Standard Room', total: 100, occupied: 68, price: '$149' },
-              ].map((room, index) => (
-                <div key={index} className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                  <div className="flex items-center justify-between mb-4">
-                    <Hotel className="w-8 h-8 text-amber-600" />
-                    <span className="text-lg font-bold text-amber-600">{room.price}</span>
-                  </div>
-                  <h3 className="text-lg font-bold text-gray-900 mb-2">{room.type}</h3>
-                  <div className="space-y-2 text-sm text-gray-600">
-                    <p>Total Rooms: <span className="font-semibold">{room.total}</span></p>
-                    <p>Occupied: <span className="font-semibold text-green-600">{room.occupied}</span></p>
-                    <p>Available: <span className="font-semibold text-blue-600">{room.total - room.occupied}</span></p>
-                  </div>
-                  <button className="mt-4 w-full py-2 border border-amber-600 text-amber-600 rounded-lg hover:bg-amber-50 transition-all">
-                    Manage
-                  </button>
+            {loadingRooms ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="flex flex-col items-center space-y-4">
+                  <img 
+                    src="/assets/pulse-multiple.svg" 
+                    alt="Loading" 
+                    className="w-12 h-12 animate-pulse"
+                  />
+                  <p className="text-amber-600 font-medium">Loading rooms...</p>
                 </div>
-              ))}
-            </div>
+              </div>
+            ) : rooms.length === 0 ? (
+              <div className="bg-white rounded-xl p-12 text-center shadow-sm border border-gray-200">
+                <Hotel className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">No Room Types Yet</h3>
+                <p className="text-gray-600 mb-6">Start by adding your first room type using the form below</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 mb-6">
+                {rooms.map((room) => (
+                  <div key={room.id} className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+                    <div className="flex items-center justify-between mb-4">
+                      <Hotel className="w-8 h-8 text-amber-600" />
+                      <span className="text-lg font-bold text-amber-600">${room.pricePerNight}</span>
+                    </div>
+                    
+                    {room.imageUrl && (
+                      <div className="mb-4 rounded-lg overflow-hidden">
+                        <img 
+                          src={room.imageUrl} 
+                          alt={room.roomTypeName}
+                          className="w-full h-32 object-cover"
+                          onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                        />
+                      </div>
+                    )}
+                    
+                    <h3 className="text-lg font-bold text-gray-900 mb-2">{room.roomTypeName}</h3>
+                    
+                    <div className="space-y-2 text-sm text-gray-600 mb-3">
+                      <p>Total Rooms: <span className="font-semibold">{room.totalRooms}</span></p>
+                      <p>Occupied: <span className="font-semibold text-green-600">{room.occupiedRooms || 0}</span></p>
+                      <p>Available: <span className="font-semibold text-blue-600">{room.totalRooms - (room.occupiedRooms || 0)}</span></p>
+                      {room.bedType && <p>Bed Type: <span className="font-semibold capitalize">{room.bedType}</span></p>}
+                      {room.maxOccupancy && <p>Max Guests: <span className="font-semibold">{room.maxOccupancy}</span></p>}
+                    </div>
+                    
+                    {room.amenities && room.amenities.length > 0 && (
+                      <div className="mb-4">
+                        <p className="text-xs font-semibold text-gray-700 mb-2">Amenities:</p>
+                        <div className="flex flex-wrap gap-1">
+                          {room.amenities.slice(0, 3).map((amenity: string, idx: number) => (
+                            <span key={idx} className="text-xs bg-amber-50 text-amber-700 px-2 py-1 rounded">
+                              {amenity}
+                            </span>
+                          ))}
+                          {room.amenities.length > 3 && (
+                            <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
+                              +{room.amenities.length - 3} more
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                    
+                    <div className="flex items-center gap-2 mb-4">
+                      <span className={`px-3 py-1 text-xs font-semibold rounded-full ${
+                        room.status === 'active' ? 'bg-green-100 text-green-700' :
+                        room.status === 'inactive' ? 'bg-gray-100 text-gray-700' :
+                        'bg-yellow-100 text-yellow-700'
+                      }`}>
+                        {room.status}
+                      </span>
+                    </div>
+                    
+                    <button className="mt-4 w-full py-2 border border-amber-600 text-amber-600 rounded-lg hover:bg-amber-50 transition-all font-medium">
+                      Manage
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
 
             {/* Add New Room Type Section */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
