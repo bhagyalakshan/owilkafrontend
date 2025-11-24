@@ -41,6 +41,11 @@ export default function AdminDashboard() {
     status: 'active'
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [notification, setNotification] = useState<{
+    show: boolean;
+    type: 'success' | 'error';
+    message: string;
+  }>({ show: false, type: 'success', message: '' });
 
   // Handle form input changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -87,15 +92,30 @@ export default function AdminDashboard() {
 
       if (response.ok) {
         const data = await response.json();
-        alert('Room type added successfully!');
+        setNotification({
+          show: true,
+          type: 'success',
+          message: 'Room type added successfully!'
+        });
         handleResetForm();
+        setTimeout(() => setNotification({ show: false, type: 'success', message: '' }), 3000);
       } else {
         const error = await response.json();
-        alert(`Error: ${error.message || 'Failed to add room type'}`);
+        setNotification({
+          show: true,
+          type: 'error',
+          message: error.message || 'Failed to add room type'
+        });
+        setTimeout(() => setNotification({ show: false, type: 'error', message: '' }), 4000);
       }
     } catch (error) {
       console.error('Error:', error);
-      alert('Failed to connect to server. Please make sure the backend is running on http://localhost:8080');
+      setNotification({
+        show: true,
+        type: 'error',
+        message: 'Failed to connect to server. Please make sure the backend is running on http://localhost:8080'
+      });
+      setTimeout(() => setNotification({ show: false, type: 'error', message: '' }), 5000);
     } finally {
       setIsSubmitting(false);
     }
@@ -773,6 +793,73 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
+      {/* Loading Overlay */}
+      {isSubmitting && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl p-8 flex flex-col items-center space-y-4 shadow-2xl">
+            <img 
+              src="/assets/pulse-multiple.svg" 
+              alt="Loading" 
+              className="w-16 h-16 animate-pulse"
+            />
+            <p className="text-amber-600 font-semibold text-lg">Loading...</p>
+          </div>
+        </div>
+      )}
+
+      {/* Notification Modal */}
+      {notification.show && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 animate-in fade-in duration-300">
+          <div className={`bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl transform transition-all ${
+            notification.type === 'success' ? 'border-l-4 border-green-500' : 'border-l-4 border-red-500'
+          }`}>
+            <div className="flex items-start gap-4">
+              <div className={`flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center ${
+                notification.type === 'success' ? 'bg-green-100' : 'bg-red-100'
+              }`}>
+                {notification.type === 'success' ? (
+                  <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                ) : (
+                  <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                )}
+              </div>
+              <div className="flex-1">
+                <h3 className={`text-lg font-semibold mb-2 ${
+                  notification.type === 'success' ? 'text-green-900' : 'text-red-900'
+                }`}>
+                  {notification.type === 'success' ? 'Success!' : 'Error'}
+                </h3>
+                <p className="text-gray-700 leading-relaxed">{notification.message}</p>
+              </div>
+              <button
+                onClick={() => setNotification({ show: false, type: 'success', message: '' })}
+                className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="mt-6 flex justify-end">
+              <button
+                onClick={() => setNotification({ show: false, type: 'success', message: '' })}
+                className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+                  notification.type === 'success'
+                    ? 'bg-green-600 hover:bg-green-700 text-white'
+                    : 'bg-red-600 hover:bg-red-700 text-white'
+                }`}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Mobile Menu Button */}
       <button
         onClick={() => setIsSidebarOpen(!isSidebarOpen)}
