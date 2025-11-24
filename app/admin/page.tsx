@@ -24,6 +24,100 @@ export default function AdminDashboard() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isLargeScreen, setIsLargeScreen] = useState(true);
+  
+  // Room form state
+  const [roomForm, setRoomForm] = useState({
+    roomTypeName: '',
+    pricePerNight: '',
+    totalRooms: '',
+    roomSize: '',
+    bedType: '',
+    maxOccupancy: '',
+    viewType: '',
+    floorNumber: '',
+    description: '',
+    amenities: [] as string[],
+    imageUrl: '',
+    status: 'active'
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Handle form input changes
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setRoomForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  // Handle amenity checkbox changes
+  const handleAmenityChange = (amenity: string) => {
+    setRoomForm(prev => ({
+      ...prev,
+      amenities: prev.amenities.includes(amenity)
+        ? prev.amenities.filter(a => a !== amenity)
+        : [...prev.amenities, amenity]
+    }));
+  };
+
+  // Handle form submission
+  const handleSubmitRoom = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch('http://localhost:8080/api/rooms', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          roomTypeName: roomForm.roomTypeName,
+          pricePerNight: parseFloat(roomForm.pricePerNight),
+          totalRooms: parseInt(roomForm.totalRooms),
+          roomSize: roomForm.roomSize ? parseInt(roomForm.roomSize) : null,
+          bedType: roomForm.bedType,
+          maxOccupancy: parseInt(roomForm.maxOccupancy),
+          viewType: roomForm.viewType || null,
+          floorNumber: roomForm.floorNumber ? parseInt(roomForm.floorNumber) : null,
+          description: roomForm.description,
+          amenities: roomForm.amenities,
+          imageUrl: roomForm.imageUrl || null,
+          status: roomForm.status
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        alert('Room type added successfully!');
+        handleResetForm();
+      } else {
+        const error = await response.json();
+        alert(`Error: ${error.message || 'Failed to add room type'}`);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Failed to connect to server. Please make sure the backend is running on http://localhost:8080');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Reset form
+  const handleResetForm = () => {
+    setRoomForm({
+      roomTypeName: '',
+      pricePerNight: '',
+      totalRooms: '',
+      roomSize: '',
+      bedType: '',
+      maxOccupancy: '',
+      viewType: '',
+      floorNumber: '',
+      description: '',
+      amenities: [],
+      imageUrl: '',
+      status: 'active'
+    });
+  };
 
   useEffect(() => {
     // Check screen size and update state
@@ -286,7 +380,7 @@ export default function AdminDashboard() {
                 <p className="text-sm text-gray-600">Create a new room category with all essential details</p>
               </div>
 
-              <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
+              <form className="space-y-6" onSubmit={handleSubmitRoom}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Room Type Name */}
                   <div>
@@ -295,6 +389,9 @@ export default function AdminDashboard() {
                     </label>
                     <input
                       type="text"
+                      name="roomTypeName"
+                      value={roomForm.roomTypeName}
+                      onChange={handleInputChange}
                       placeholder="e.g., Deluxe Suite"
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition-all"
                       required
@@ -308,6 +405,9 @@ export default function AdminDashboard() {
                     </label>
                     <input
                       type="number"
+                      name="pricePerNight"
+                      value={roomForm.pricePerNight}
+                      onChange={handleInputChange}
                       placeholder="299"
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition-all"
                       required
@@ -321,6 +421,9 @@ export default function AdminDashboard() {
                     </label>
                     <input
                       type="number"
+                      name="totalRooms"
+                      value={roomForm.totalRooms}
+                      onChange={handleInputChange}
                       placeholder="50"
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition-all"
                       required
@@ -334,6 +437,9 @@ export default function AdminDashboard() {
                     </label>
                     <input
                       type="number"
+                      name="roomSize"
+                      value={roomForm.roomSize}
+                      onChange={handleInputChange}
                       placeholder="450"
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition-all"
                     />
@@ -344,7 +450,13 @@ export default function AdminDashboard() {
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Bed Type <span className="text-red-500">*</span>
                     </label>
-                    <select className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition-all" required>
+                    <select
+                      name="bedType"
+                      value={roomForm.bedType}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition-all"
+                      required
+                    >
                       <option value="">Select bed type</option>
                       <option value="single">Single</option>
                       <option value="double">Double</option>
@@ -361,6 +473,9 @@ export default function AdminDashboard() {
                     </label>
                     <input
                       type="number"
+                      name="maxOccupancy"
+                      value={roomForm.maxOccupancy}
+                      onChange={handleInputChange}
                       placeholder="2"
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition-all"
                       required
@@ -372,7 +487,12 @@ export default function AdminDashboard() {
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       View Type
                     </label>
-                    <select className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition-all">
+                    <select
+                      name="viewType"
+                      value={roomForm.viewType}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition-all"
+                    >
                       <option value="">Select view type</option>
                       <option value="ocean">Ocean View</option>
                       <option value="city">City View</option>
@@ -389,6 +509,9 @@ export default function AdminDashboard() {
                     </label>
                     <input
                       type="number"
+                      name="floorNumber"
+                      value={roomForm.floorNumber}
+                      onChange={handleInputChange}
                       placeholder="3"
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition-all"
                     />
@@ -401,6 +524,9 @@ export default function AdminDashboard() {
                     Room Description <span className="text-red-500">*</span>
                   </label>
                   <textarea
+                    name="description"
+                    value={roomForm.description}
+                    onChange={handleInputChange}
                     rows={4}
                     placeholder="Describe the room features, amenities, and highlights..."
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition-all resize-none"
@@ -429,7 +555,12 @@ export default function AdminDashboard() {
                       'Bathtub',
                     ].map((amenity) => (
                       <label key={amenity} className="flex items-center gap-2 cursor-pointer">
-                        <input type="checkbox" className="w-4 h-4 text-amber-600 rounded" />
+                        <input
+                          type="checkbox"
+                          checked={roomForm.amenities.includes(amenity)}
+                          onChange={() => handleAmenityChange(amenity)}
+                          className="w-4 h-4 text-amber-600 rounded"
+                        />
                         <span className="text-sm text-gray-700">{amenity}</span>
                       </label>
                     ))}
@@ -443,10 +574,13 @@ export default function AdminDashboard() {
                   </label>
                   <input
                     type="url"
+                    name="imageUrl"
+                    value={roomForm.imageUrl}
+                    onChange={handleInputChange}
                     placeholder="https://example.com/room-image.jpg"
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition-all"
                   />
-                  <p className="mt-1 text-xs text-gray-500">Enter the URL of the room image</p>
+                  <p className="mt-1 text-xs text-gray-500">Enter the URL of the room image or Google Drive direct link</p>
                 </div>
 
                 {/* Status */}
@@ -454,7 +588,12 @@ export default function AdminDashboard() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Status
                   </label>
-                  <select className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition-all">
+                  <select
+                    name="status"
+                    value={roomForm.status}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition-all"
+                  >
                     <option value="active">Active</option>
                     <option value="inactive">Inactive</option>
                     <option value="maintenance">Under Maintenance</option>
@@ -465,13 +604,16 @@ export default function AdminDashboard() {
                 <div className="flex gap-4 pt-4 border-t border-gray-200">
                   <button
                     type="submit"
-                    className="flex-1 px-6 py-3 bg-amber-600 text-white rounded-lg font-medium hover:bg-amber-700 focus:ring-4 focus:ring-amber-200 transition-all"
+                    disabled={isSubmitting}
+                    className="flex-1 px-6 py-3 bg-amber-600 text-white rounded-lg font-medium hover:bg-amber-700 focus:ring-4 focus:ring-amber-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Add Room Type
+                    {isSubmitting ? 'Adding...' : 'Add Room Type'}
                   </button>
                   <button
-                    type="reset"
-                    className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-all"
+                    type="button"
+                    onClick={handleResetForm}
+                    disabled={isSubmitting}
+                    className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Reset Form
                   </button>
