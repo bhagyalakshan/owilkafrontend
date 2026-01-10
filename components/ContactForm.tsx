@@ -77,7 +77,7 @@ export const ContactForm: React.FC = () => {
                 </div>
                 <div>
                   <div className="font-semibold text-zinc-900 mb-1">Phone</div>
-                  <div className="text-zinc-600">+1 (555) 123-4567</div>
+                  <div className="text-zinc-600">076 2865399</div>
                   <div className="text-sm text-zinc-500">Available 24/7</div>
                 </div>
               </div>
@@ -99,8 +99,8 @@ export const ContactForm: React.FC = () => {
                 </div>
                 <div>
                   <div className="font-semibold text-zinc-900 mb-1">Address</div>
-                  <div className="text-zinc-600">123 Paradise Lane</div>
-                  <div className="text-zinc-600">Luxury District, Resort City</div>
+                  <div className="text-zinc-600">50/B Panama West,</div>
+                  <div className="text-zinc-600">Panama</div>
                 </div>
               </div>
             </div>
