@@ -71,38 +71,39 @@ export const ContactForm: React.FC = () => {
             </div>
 
             <div className="space-y-6">
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center text-amber-600 flex-shrink-0">
+              <a href="tel:+94762865399" className="flex items-start gap-4 group hover:bg-amber-50 p-4 rounded-lg transition-all duration-300 cursor-pointer">
+                <div className="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center text-amber-600 flex-shrink-0 group-hover:bg-amber-200 transition-all">
                   <Phone className="w-5 h-5" />
                 </div>
                 <div>
                   <div className="font-semibold text-zinc-900 mb-1">Phone</div>
-                  <div className="text-zinc-600">076 2865399</div>
-                  <div className="text-sm text-zinc-500">Available 24/7</div>
+                  <div className="text-zinc-600 group-hover:text-amber-600 transition-colors">076 2865399</div>
+                  <div className="text-sm text-zinc-500">Available 24/7 - Click to call</div>
                 </div>
-              </div>
+              </a>
 
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center text-amber-600 flex-shrink-0">
+              <a href="mailto:reservations@owilka.com" className="flex items-start gap-4 group hover:bg-amber-50 p-4 rounded-lg transition-all duration-300 cursor-pointer">
+                <div className="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center text-amber-600 flex-shrink-0 group-hover:bg-amber-200 transition-all">
                   <Mail className="w-5 h-5" />
                 </div>
                 <div>
                   <div className="font-semibold text-zinc-900 mb-1">Email</div>
-                  <div className="text-zinc-600">reservations@owilka.com</div>
-                  <div className="text-sm text-zinc-500">We'll respond within 24 hours</div>
+                  <div className="text-zinc-600 group-hover:text-amber-600 transition-colors">reservations@owilka.com</div>
+                  <div className="text-sm text-zinc-500">Click to send email - We'll respond within 24 hours</div>
                 </div>
-              </div>
+              </a>
 
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center text-amber-600 flex-shrink-0">
+              <a href="https://www.google.com/maps/search/?api=1&query=6.759938793236707,81.81199277476875" target="_blank" rel="noopener noreferrer" className="flex items-start gap-4 group hover:bg-amber-50 p-4 rounded-lg transition-all duration-300 cursor-pointer">
+                <div className="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center text-amber-600 flex-shrink-0 group-hover:bg-amber-200 transition-all">
                   <MapPin className="w-5 h-5" />
                 </div>
                 <div>
                   <div className="font-semibold text-zinc-900 mb-1">Address</div>
-                  <div className="text-zinc-600">50/B Panama West,</div>
-                  <div className="text-zinc-600">Panama</div>
+                  <div className="text-zinc-600 group-hover:text-amber-600 transition-colors">50/B Panama West,</div>
+                  <div className="text-zinc-600 group-hover:text-amber-600 transition-colors">Panama</div>
+                  <div className="text-sm text-zinc-500">Click to view on Google Maps</div>
                 </div>
-              </div>
+              </a>
             </div>
           </motion.div>
 
@@ -201,6 +202,25 @@ export const ContactForm: React.FC = () => {
             </form>
           </motion.div>
         </div>
+
+        {/* Google Maps Embed */}
+        <motion.div
+          className="mt-16 rounded-2xl overflow-hidden shadow-xl"
+          initial={{ opacity: 0, y: 30 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6, delay: 0.6 }}
+        >
+          <iframe 
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3962.0813164965557!2d81.8145677!3d6.759938800000004!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3ae5bf0022645e85%3A0x1972e7f7ed54f9e5!2sOwilka%20Village%20Resort!5e0!3m2!1sen!2slk!4v1768034059226!5m2!1sen!2slk" 
+            width="100%" 
+            height="450" 
+            style={{ border: 0 }} 
+            allowFullScreen 
+            loading="lazy" 
+            referrerPolicy="no-referrer-when-downgrade"
+            className="w-full"
+          />
+        </motion.div>
       </div>
     </section>
   );
