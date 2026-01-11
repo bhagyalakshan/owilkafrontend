@@ -619,6 +619,10 @@ video {
   margin-left: auto;
   margin-right: auto;
 }
+.my-8 {
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+}
 .mb-0\.5 {
   margin-bottom: 0.125rem;
 }
@@ -2223,6 +2227,10 @@ video {
 
   .md\:flex-row {
     flex-direction: row;
+  }
+
+  .md\:p-8 {
+    padding: 2rem;
   }
 
   .md\:text-left {
