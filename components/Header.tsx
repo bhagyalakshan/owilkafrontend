@@ -27,6 +27,17 @@ export const Header: React.FC = () => {
     return () => unsubscribe();
   }, [scrollY]);
 
+  const handleNavClick = (href: string) => {
+    setIsMenuOpen(false);
+    // Small delay to allow menu to close before scrolling
+    setTimeout(() => {
+      const element = document.querySelector(href);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 100);
+  };
+
   return (
     <motion.header
   className={`fixed top-0 w-full z-50 transition-all duration-300 py-4 ${
@@ -134,14 +145,13 @@ export const Header: React.FC = () => {
       >
         <div className="px-6 py-4 space-y-4">
           {navigation.map((item) => (
-            <a
+            <button
               key={item.name}
-              href={item.href}
-              className="block py-2 text-zinc-700 hover:text-amber-700 transform hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer"
-              onClick={() => setIsMenuOpen(false)}
+              onClick={() => handleNavClick(item.href)}
+              className="block w-full text-left py-2 text-zinc-700 hover:text-amber-700 transform hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer"
             >
               {item.name}
-            </a>
+            </button>
           ))}
 
           <button
@@ -155,13 +165,12 @@ export const Header: React.FC = () => {
             <span>Admin Login</span>
           </button>
 
-          <a
-            href={ctaHref}
+          <button
+            onClick={() => handleNavClick(ctaHref)}
             className="block w-full text-center px-6 py-2 bg-amber-600 text-white rounded-lg mt-4 transform hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer"
-            onClick={() => setIsMenuOpen(false)}
           >
             {ctaText}
-          </a>
+          </button>
         </div>
       </motion.div>
     )}
