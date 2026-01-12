@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Calendar, Users, Check } from 'lucide-react';
+import { X, Calendar, Users, Check, Mail, Phone, User } from 'lucide-react';
 import { rooms } from '../data/mockRooms';
 
 interface BookingModalProps {
@@ -13,13 +13,49 @@ export const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, roo
   const [checkIn, setCheckIn] = useState('');
   const [checkOut, setCheckOut] = useState('');
   const [guests, setGuests] = useState(1);
+  const [guestName, setGuestName] = useState('');
+  const [guestEmail, setGuestEmail] = useState('');
+  const [guestPhone, setGuestPhone] = useState('');
+  const [specialRequests, setSpecialRequests] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [bookingSuccess, setBookingSuccess] = useState(false);
-
-  const room = rooms.find(r => r.id === roomId);
+  const [error, setError] = useState<string | null>(null);
+  const [room, setRoom] = useState<any>(null);
 
   // Set minimum dates
   const today = new Date().toISOString().split('T')[0];
+
+  useEffect(() => {
+    // Fetch room data from backend
+    const fetchRoom = async () => {
+      if (roomId) {
+        try {
+          const response = await fetch(`http://localhost:8080/api/rooms/${roomId}`);
+          if (response.ok) {
+            const data = await response.json();
+            setRoom({
+              id: data.id,
+              name: data.roomTypeName,
+              category: data.bedType ? data.bedType.charAt(0).toUpperCase() + data.bedType.slice(1) : 'Standard',
+              price: data.pricePerNight,
+              description: data.description || 'Experience luxury and comfort.',
+              image: data.imageUrl || 'https://images.unsplash.com/photo-1566665797739-1674de7a421a?w=800',
+              maxGuests: data.maxOccupancy || 2,
+              size: data.roomSize || '350 sq ft',
+              features: data.amenities || []
+            });
+          }
+        } catch (error) {
+          console.error('Error fetching room:', error);
+          // Fallback to mockRooms if backend fails
+          const fallbackRoom = rooms.find(r => r.id === roomId);
+          setRoom(fallbackRoom);
+        }
+      }
+    };
+    
+    fetchRoom();
+  }, [roomId]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -28,7 +64,12 @@ export const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, roo
         setCheckIn('');
         setCheckOut('');
         setGuests(1);
+        setGuestName('');
+        setGuestEmail('');
+        setGuestPhone('');
+        setSpecialRequests('');
         setBookingSuccess(false);
+        setError(null);
       }, 300);
     }
   }, [isOpen]);
@@ -36,32 +77,52 @@ export const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, roo
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setError(null);
 
-    // Simulate booking process
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    try {
+      // Create booking object
+      const bookingData = {
+        roomId: roomId,
+        guestName,
+        guestEmail,
+        guestPhone,
+        checkInDate: checkIn,
+        checkOutDate: checkOut,
+        numberOfGuests: guests,
+        totalPrice: calculateTotalPrice(),
+        specialRequests: specialRequests || null,
+        status: 'CONFIRMED'
+      };
 
-    // Save booking to localStorage
-    const booking = {
-      id: Date.now().toString(),
-      roomId,
-      roomName: room?.name,
-      checkIn,
-      checkOut,
-      guests,
-      totalPrice: room ? calculateTotalPrice() : 0,
-      bookedAt: new Date().toISOString()
-    };
+      // Send to Spring Boot backend
+      const response = await fetch('http://localhost:8080/api/bookings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(bookingData)
+      });
 
-    const existingBookings = JSON.parse(localStorage.getItem('owilka_bookings') || '[]');
-    localStorage.setItem('owilka_bookings', JSON.stringify([...existingBookings, booking]));
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to create booking');
+      }
 
-    setIsSubmitting(false);
-    setBookingSuccess(true);
+      const result = await response.json();
+      console.log('Booking created successfully:', result);
 
-    // Auto close after success
-    setTimeout(() => {
-      onClose();
-    }, 2000);
+      setIsSubmitting(false);
+      setBookingSuccess(true);
+
+      // Auto close after success
+      setTimeout(() => {
+        onClose();
+      }, 3000);
+    } catch (error: any) {
+      console.error('Error creating booking:', error);
+      setError(error.message || 'Failed to create booking. Please try again.');
+      setIsSubmitting(false);
+    }
   };
 
   const calculateTotalPrice = () => {
@@ -113,8 +174,16 @@ export const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, roo
                   <p className="text-zinc-600 mb-6">
                     Your reservation at Owilka has been successfully confirmed. We look forward to welcoming you!
                   </p>
+                  <div className="bg-amber-50 p-4 rounded-lg mb-4">
+                    <div className="text-sm text-zinc-700">
+                      <p><strong>Guest:</strong> {guestName}</p>
+                      <p><strong>Check-in:</strong> {new Date(checkIn).toLocaleDateString()}</p>
+                      <p><strong>Check-out:</strong> {new Date(checkOut).toLocaleDateString()}</p>
+                      <p><strong>Total:</strong> ${calculateTotalPrice()}</p>
+                    </div>
+                  </div>
                   <div className="text-sm text-zinc-500">
-                    A confirmation email will be sent to your inbox shortly.
+                    A confirmation email has been sent to {guestEmail}
                   </div>
                 </div>
               ) : (
@@ -124,7 +193,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, roo
                   <div className="flex items-start justify-between p-6 border-b border-zinc-200">
                     <div>
                       <h3 className="text-2xl font-bold text-zinc-900 mb-1">Book Your Stay</h3>
-                      <p className="text-zinc-600">{room.name}</p>
+                      <p className="text-zinc-600">{room?.name}</p>
                     </div>
                     <button
                       onClick={onClose}
@@ -135,6 +204,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, roo
                   </div>
 
                   {/* Room Preview */}
+                  {room && (
                   <div className="p-6 border-b border-zinc-200">
                     <div className="flex gap-4">
                       <img
@@ -160,13 +230,84 @@ export const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, roo
                       </div>
                     </div>
                   </div>
+                  )}
 
                   {/* Booking Form */}
                   <form onSubmit={handleSubmit} className="p-6 space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Error Message */}
+                    {error && (
+                      <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+                        {error}
+                      </div>
+                    )}
+
+                    {/* Guest Information */}
+                    <div className="space-y-4">
+                      <h4 className="text-lg font-semibold text-zinc-800">Guest Information</h4>
+                      
+                      <div>
+                        <label htmlFor="guestName" className="block text-sm font-semibold text-zinc-700 mb-2">
+                          Full Name *
+                        </label>
+                        <div className="relative">
+                          <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-zinc-400" />
+                          <input
+                            type="text"
+                            id="guestName"
+                            value={guestName}
+                            onChange={(e) => setGuestName(e.target.value)}
+                            required
+                            className="w-full pl-10 pr-4 py-3 border border-zinc-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all outline-none"
+                            placeholder="John Doe"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label htmlFor="guestEmail" className="block text-sm font-semibold text-zinc-700 mb-2">
+                          Email Address *
+                        </label>
+                        <div className="relative">
+                          <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-zinc-400" />
+                          <input
+                            type="email"
+                            id="guestEmail"
+                            value={guestEmail}
+                            onChange={(e) => setGuestEmail(e.target.value)}
+                            required
+                            className="w-full pl-10 pr-4 py-3 border border-zinc-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all outline-none"
+                            placeholder="john@example.com"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label htmlFor="guestPhone" className="block text-sm font-semibold text-zinc-700 mb-2">
+                          Phone Number *
+                        </label>
+                        <div className="relative">
+                          <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-zinc-400" />
+                          <input
+                            type="tel"
+                            id="guestPhone"
+                            value={guestPhone}
+                            onChange={(e) => setGuestPhone(e.target.value)}
+                            required
+                            className="w-full pl-10 pr-4 py-3 border border-zinc-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all outline-none"
+                            placeholder="+1 (555) 123-4567"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Booking Details */}
+                    <div className="space-y-4 pt-4 border-t border-zinc-200">
+                      <h4 className="text-lg font-semibold text-zinc-800">Booking Details</h4>
+                      
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label htmlFor="checkIn" className="block text-sm font-semibold text-zinc-700 mb-2">
-                          Check-in Date
+                          Check-in Date *
                         </label>
                         <div className="relative">
                           <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-zinc-400" />
@@ -184,7 +325,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, roo
 
                       <div>
                         <label htmlFor="checkOut" className="block text-sm font-semibold text-zinc-700 mb-2">
-                          Check-out Date
+                          Check-out Date *
                         </label>
                         <div className="relative">
                           <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-zinc-400" />
@@ -203,7 +344,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, roo
 
                     <div>
                       <label htmlFor="guests" className="block text-sm font-semibold text-zinc-700 mb-2">
-                        Number of Guests
+                        Number of Guests *
                       </label>
                       <div className="relative">
                         <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-zinc-400" />
@@ -213,7 +354,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, roo
                           onChange={(e) => setGuests(Number(e.target.value))}
                           className="w-full pl-10 pr-4 py-3 border border-zinc-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all outline-none"
                         >
-                          {[...Array(room.maxGuests)].map((_, i) => (
+                          {room && [...Array(room.maxGuests)].map((_, i) => (
                             <option key={i + 1} value={i + 1}>
                               {i + 1} {i === 0 ? 'Guest' : 'Guests'}
                             </option>
@@ -222,8 +363,23 @@ export const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, roo
                       </div>
                     </div>
 
+                    <div>
+                      <label htmlFor="specialRequests" className="block text-sm font-semibold text-zinc-700 mb-2">
+                        Special Requests (Optional)
+                      </label>
+                      <textarea
+                        id="specialRequests"
+                        value={specialRequests}
+                        onChange={(e) => setSpecialRequests(e.target.value)}
+                        rows={3}
+                        className="w-full px-4 py-3 border border-zinc-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all outline-none resize-none"
+                        placeholder="Any special requests or requirements..."
+                      />
+                    </div>
+                    </div>
+
                     {/* Price Summary */}
-                    {checkIn && checkOut && (
+                    {checkIn && checkOut && room && (
                       <motion.div
                         initial={{ opacity: 0, y: -10 }}
                         animate={{ opacity: 1, y: 0 }}
