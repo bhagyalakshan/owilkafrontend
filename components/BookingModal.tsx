@@ -20,6 +20,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, roo
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [bookingSuccess, setBookingSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showError, setShowError] = useState(false);
   const [room, setRoom] = useState<any>(null);
 
   // Set minimum dates
@@ -70,6 +71,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, roo
         setSpecialRequests('');
         setBookingSuccess(false);
         setError(null);
+        setShowError(false);
       }, 300);
     }
   }, [isOpen]);
@@ -121,7 +123,13 @@ export const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, roo
     } catch (error: any) {
       console.error('Error creating booking:', error);
       setError(error.message || 'Failed to create booking. Please try again.');
+      setShowError(true);
       setIsSubmitting(false);
+      
+      // Auto dismiss error after 4 seconds
+      setTimeout(() => {
+        setShowError(false);
+      }, 4000);
     }
   };
 
@@ -160,7 +168,45 @@ export const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, roo
               exit={{ scale: 0.9, y: 20 }}
               onClick={(e) => e.stopPropagation()}
             >
-              {bookingSuccess ? (
+              {isSubmitting ? (
+                // Loading State
+                <div className="p-8 text-center">
+                  <motion.div
+                    className="w-20 h-20 mx-auto mb-6"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                  >
+                    <div className="w-20 h-20 border-4 border-amber-200 border-t-amber-600 rounded-full animate-spin"></div>
+                  </motion.div>
+                  <h3 className="text-2xl font-bold text-zinc-900 mb-3">Processing Your Booking...</h3>
+                  <p className="text-zinc-600">
+                    Please wait while we confirm your reservation.
+                  </p>
+                </div>
+              ) : showError ? (
+                // Error State
+                <div className="p-8 text-center">
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6"
+                  >
+                    <X className="w-10 h-10 text-red-600" />
+                  </motion.div>
+                  <h3 className="text-3xl font-bold text-zinc-900 mb-3">Booking Failed</h3>
+                  <p className="text-zinc-600 mb-6">
+                    {error}
+                  </p>
+                  <motion.button
+                    onClick={() => setShowError(false)}
+                    className="px-6 py-3 bg-amber-600 text-white rounded-lg font-semibold hover:bg-amber-700 transition-all"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    Try Again
+                  </motion.button>
+                </div>
+              ) : bookingSuccess ? (
                 // Success State
                 <div className="p-8 text-center">
                   <motion.div
@@ -234,13 +280,6 @@ export const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, roo
 
                   {/* Booking Form */}
                   <form onSubmit={handleSubmit} className="p-6 space-y-6">
-                    {/* Error Message */}
-                    {error && (
-                      <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-                        {error}
-                      </div>
-                    )}
-
                     {/* Guest Information */}
                     <div className="space-y-4">
                       <h4 className="text-lg font-semibold text-zinc-800">Guest Information</h4>
@@ -403,7 +442,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, roo
                     <motion.button
                       type="submit"
                       disabled={isSubmitting}
-                      className={`w-full py-4 rounded-lg font-semibold transition-all shadow-md ${
+                      className={`w-full py-4 rounded-lg font-semibold transition-all shadow-md flex items-center justify-center gap-2 ${
                         isSubmitting
                           ? 'bg-zinc-400 text-white cursor-not-allowed'
                           : 'bg-amber-600 text-white hover:bg-amber-700 cursor-pointer'
@@ -411,6 +450,9 @@ export const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, roo
                       whileHover={isSubmitting ? {} : { scale: 1.02 }}
                       whileTap={isSubmitting ? {} : { scale: 0.98 }}
                     >
+                      {isSubmitting && (
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      )}
                       {isSubmitting ? 'Processing...' : 'Confirm Booking'}
                     </motion.button>
                   </form>
