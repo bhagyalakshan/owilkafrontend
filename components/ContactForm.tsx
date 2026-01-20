@@ -126,7 +126,7 @@ export const ContactForm: React.FC = () => {
                   onChange={handleChange}
                   required
                   className="w-full px-4 py-3 border border-zinc-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all outline-none"
-                  placeholder="John Doe"
+                  placeholder="Owilka Guest"
                 />
               </div>
 
@@ -142,7 +142,7 @@ export const ContactForm: React.FC = () => {
                   onChange={handleChange}
                   required
                   className="w-full px-4 py-3 border border-zinc-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all outline-none"
-                  placeholder="john@example.com"
+                  placeholder="Owilkaguest@owilka.com"
                 />
               </div>
 
@@ -157,7 +157,7 @@ export const ContactForm: React.FC = () => {
                   value={formData.phone}
                   onChange={handleChange}
                   className="w-full px-4 py-3 border border-zinc-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all outline-none"
-                  placeholder="+1 (555) 000-0000"
+                  placeholder="+94 76 2865399"
                 />
               </div>
 
