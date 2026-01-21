@@ -1,4 +1,5 @@
 import "../styles/globals.css";
+import WhatsAppButton from "../components/WhatsAppButton";
 
 export const metadata = {
   title: "Owilka",
@@ -15,7 +16,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="scroll-smooth">
-      <body className="overflow-x-hidden">{children}</body>
+      <body className="overflow-x-hidden">
+        {children}
+        <WhatsAppButton />
+      </body>
     </html>
   );
 }
