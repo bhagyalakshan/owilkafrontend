@@ -297,7 +297,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, roo
                             onChange={(e) => setGuestName(e.target.value)}
                             required
                             className="w-full pl-10 pr-4 py-3 border border-zinc-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all outline-none"
-                            placeholder="John Doe"
+                            placeholder="Owilka user"
                           />
                         </div>
                       </div>
@@ -315,7 +315,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, roo
                             onChange={(e) => setGuestEmail(e.target.value)}
                             required
                             className="w-full pl-10 pr-4 py-3 border border-zinc-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all outline-none"
-                            placeholder="john@example.com"
+                            placeholder="owilkauser@example.com"
                           />
                         </div>
                       </div>
@@ -333,7 +333,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, roo
                             onChange={(e) => setGuestPhone(e.target.value)}
                             required
                             className="w-full pl-10 pr-4 py-3 border border-zinc-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all outline-none"
-                            placeholder="+1 (555) 123-4567"
+                            placeholder="+94 76 28 65 399"
                           />
                         </div>
                       </div>
