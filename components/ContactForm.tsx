@@ -15,27 +15,155 @@ export const ContactForm: React.FC = () => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [errorMessage, setErrorMessage] = useState<string>('');
+  
+  const [validationErrors, setValidationErrors] = useState({
+    name: '',
+    email: '',
+    message: ''
+  });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [name]: value
     });
+    
+    // Clear validation error when user starts typing
+    if (validationErrors[name as keyof typeof validationErrors]) {
+      setValidationErrors({
+        ...validationErrors,
+        [name]: ''
+      });
+    }
+  };
+
+  const validateForm = () => {
+    const errors = {
+      name: '',
+      email: '',
+      message: ''
+    };
+    
+    let isValid = true;
+
+    // Validate name
+    if (!formData.name.trim()) {
+      errors.name = 'Name is required';
+      isValid = false;
+    } else if (formData.name.trim().length < 2) {
+      errors.name = 'Name must be at least 2 characters';
+      isValid = false;
+    } else if (formData.name.trim().length > 100) {
+      errors.name = 'Name must not exceed 100 characters';
+      isValid = false;
+    }
+
+    // Validate email
+    if (!formData.email.trim()) {
+      errors.email = 'Email is required';
+      isValid = false;
+    } else {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.email)) {
+        errors.email = 'Please enter a valid email address';
+        isValid = false;
+      }
+    }
+
+    // Validate message
+    if (!formData.message.trim()) {
+      errors.message = 'Message is required';
+      isValid = false;
+    } else if (formData.message.trim().length < 10) {
+      errors.message = `Message must be at least 10 characters (currently ${formData.message.trim().length})`;
+      isValid = false;
+    } else if (formData.message.trim().length > 1000) {
+      errors.message = 'Message must not exceed 1000 characters';
+      isValid = false;
+    }
+
+    setValidationErrors(errors);
+    return isValid;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate form before submission
+    if (!validateForm()) {
+      return;
+    }
+    
     setIsSubmitting(true);
+    setSubmitStatus('idle');
+    setErrorMessage('');
     
-    // Simulate form submission
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    setIsSubmitting(false);
-    setSubmitStatus('success');
-    setFormData({ name: '', email: '', phone: '', message: '' });
-    
-    // Reset status after 3 seconds
-    setTimeout(() => setSubmitStatus('idle'), 3000);
+    try {
+      // Log the data being sent for debugging
+      console.log('Sending contact form data:', formData);
+      
+      // Replace with your actual Spring Boot backend URL
+      const response = await fetch('http://localhost:8080/api/contacts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        console.error('Server error response:', errorData);
+        
+        // Handle validation errors
+        if (response.status === 400 && errorData) {
+          if (errorData.errors && Array.isArray(errorData.errors)) {
+            // Spring Boot validation error format - errors is an array
+            const validationErrors = errorData.errors
+              .map((err: any) => `${err.field}: ${err.defaultMessage}`)
+              .join('; ');
+            throw new Error(validationErrors);
+          } else if (errorData.message) {
+            throw new Error(errorData.message);
+          }
+        }
+        
+        throw new Error(errorData?.message || `Server error: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('Form submitted successfully:', result);
+      
+      setIsSubmitting(false);
+      setSubmitStatus('success');
+      setFormData({ name: '', email: '', phone: '', message: '' });
+      
+      // Reset status after 3 seconds
+      setTimeout(() => setSubmitStatus('idle'), 3000);
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      setIsSubmitting(false);
+      setSubmitStatus('error');
+      
+      // Set specific error message
+      if (error instanceof Error) {
+        if (error.message.includes('Failed to fetch')) {
+          setErrorMessage('Cannot connect to server. Please ensure backend is running on port 8080.');
+        } else {
+          setErrorMessage(error.message);
+        }
+      } else {
+        setErrorMessage('An unexpected error occurred. Please try again.');
+      }
+      
+      // Reset error status after 5 seconds
+      setTimeout(() => {
+        setSubmitStatus('idle');
+        setErrorMessage('');
+      }, 5000);
+    }
   };
 
   return (
@@ -124,10 +252,16 @@ export const ContactForm: React.FC = () => {
                   name="name"
                   value={formData.name}
                   onChange={handleChange}
-                  required
-                  className="w-full px-4 py-3 border border-zinc-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all outline-none"
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 transition-all outline-none ${
+                    validationErrors.name 
+                      ? 'border-red-500 focus:ring-red-500 focus:border-red-500' 
+                      : 'border-zinc-300 focus:ring-amber-500 focus:border-amber-500'
+                  }`}
                   placeholder="Owilka Guest"
                 />
+                {validationErrors.name && (
+                  <p className="mt-1 text-sm text-red-600">{validationErrors.name}</p>
+                )}
               </div>
 
               <div>
@@ -140,10 +274,16 @@ export const ContactForm: React.FC = () => {
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
-                  required
-                  className="w-full px-4 py-3 border border-zinc-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all outline-none"
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 transition-all outline-none ${
+                    validationErrors.email 
+                      ? 'border-red-500 focus:ring-red-500 focus:border-red-500' 
+                      : 'border-zinc-300 focus:ring-amber-500 focus:border-amber-500'
+                  }`}
                   placeholder="Owilkaguest@owilka.com"
                 />
+                {validationErrors.email && (
+                  <p className="mt-1 text-sm text-red-600">{validationErrors.email}</p>
+                )}
               </div>
 
               <div>
@@ -163,33 +303,56 @@ export const ContactForm: React.FC = () => {
 
               <div>
                 <label htmlFor="message" className="block text-sm font-semibold text-zinc-700 mb-2">
-                  Message
+                  Message <span className="text-zinc-500 text-xs">(minimum 10 characters)</span>
                 </label>
                 <textarea
                   id="message"
                   name="message"
                   value={formData.message}
                   onChange={handleChange}
-                  required
                   rows={5}
-                  className="w-full px-4 py-3 border border-zinc-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all outline-none resize-none"
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 transition-all outline-none resize-none ${
+                    validationErrors.message 
+                      ? 'border-red-500 focus:ring-red-500 focus:border-red-500' 
+                      : 'border-zinc-300 focus:ring-amber-500 focus:border-amber-500'
+                  }`}
                   placeholder="How can we help you?"
                 />
+                <div className="flex justify-between items-center mt-1">
+                  {validationErrors.message ? (
+                    <p className="text-sm text-red-600">{validationErrors.message}</p>
+                  ) : (
+                    <p className="text-xs text-zinc-500">
+                      {formData.message.length}/1000 characters
+                      {formData.message.length > 0 && formData.message.length < 10 && (
+                        <span className="text-amber-600 ml-2">
+                          ({10 - formData.message.length} more needed)
+                        </span>
+                      )}
+                    </p>
+                  )}
+                </div>
               </div>
 
               <motion.button
                 type="submit"
                 disabled={isSubmitting}
                 className={`w-full flex items-center justify-center gap-2 px-6 py-4 rounded-lg font-semibold transition-all shadow-md ${
-                  isSubmitting || submitStatus === 'success'
+                  submitStatus === 'success'
                     ? 'bg-green-600 text-white cursor-not-allowed'
+                    : submitStatus === 'error'
+                    ? 'bg-red-600 text-white cursor-pointer'
+                    : isSubmitting
+                    ? 'bg-amber-500 text-white cursor-not-allowed'
                     : 'bg-amber-600 text-white hover:bg-amber-700 cursor-pointer'
                 }`}
                 whileHover={isSubmitting || submitStatus === 'success' ? {} : { scale: 1.02 }}
                 whileTap={isSubmitting || submitStatus === 'success' ? {} : { scale: 0.98 }}
               >
                 {submitStatus === 'success' ? (
-                  <>✓ Message Sent!</>
+                  <>✓ Message Sent Successfully!</>
+                ) : submitStatus === 'error' ? (
+                  <>✗ Failed to Send. Try Again</>
                 ) : isSubmitting ? (
                   <>
                     <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
@@ -202,6 +365,28 @@ export const ContactForm: React.FC = () => {
                   </>
                 )}
               </motion.button>
+
+              {/* Error Message Display */}
+              {errorMessage && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm"
+                >
+                  <strong>Error:</strong> {errorMessage}
+                </motion.div>
+              )}
+
+              {/* Success Message Display */}
+              {submitStatus === 'success' && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm"
+                >
+                  Thank you for contacting us! We'll respond within 24 hours.
+                </motion.div>
+              )}
             </form>
           </motion.div>
         </div>
