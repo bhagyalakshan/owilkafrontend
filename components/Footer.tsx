@@ -7,8 +7,8 @@ export const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
   
   const socialLinks = [
-    { name: 'Facebook', href: '#', icon: <Facebook className="w-5 h-5" /> },
-    { name: 'Instagram', href: '#', icon: <Instagram className="w-5 h-5" /> },
+    { name: 'Facebook', href: 'https://www.facebook.com/profile.php?id=100063504425129&mibextid=ZbWKwL', icon: <Facebook className="w-5 h-5" /> },
+    { name: 'Instagram', href: 'https://www.instagram.com/_bhagya1107?igsh=MWg3MG9lcjJjbDd5cQ==', icon: <Instagram className="w-5 h-5" /> },
     { name: 'Twitter', href: '#', icon: <Twitter className="w-5 h-5" /> },
   ];
 
@@ -57,7 +57,7 @@ export const Footer: React.FC = () => {
             <ul className="space-y-3">
               <li className="flex items-start gap-3 text-sm text-zinc-300">
                 <Phone className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                <span>+1 (555) 123-4567</span>
+                <span>+94 76 28 65 399</span>
               </li>
               <li className="flex items-start gap-3 text-sm text-zinc-300">
                 <Mail className="w-4 h-4 mt-0.5 flex-shrink-0" />
@@ -65,7 +65,7 @@ export const Footer: React.FC = () => {
               </li>
               <li className="flex items-start gap-3 text-sm text-zinc-300">
                 <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                <span>123 Paradise Lane<br />Luxury District, Resort City</span>
+                <span>50/B Panama West, Panama</span>
               </li>
             </ul>
           </div>
